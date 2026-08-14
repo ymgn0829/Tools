@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>SNS Links</title>
+  <meta name="description" content="SNS / ウェブサイトのリンク集">
+  <link rel="stylesheet" href="/assets/common.css">
+  <style>
+    .profile {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .profile-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+
+    .profile-bio {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--fg);
+      transition: all 0.3s;
+    }
+
+    .link-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .link-icon {
+      font-size: 1.5rem;
+      width: 2rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .link-content h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .link-content p {
+      margin: 0.25rem 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap"><a class="brand" href="/">Tools</a></div>
+</header>
+
+<main>
+  <div class="profile">
+    <h1 class="profile-name">@yxmxgxn</h1>
+    <p class="profile-bio">ウェブツール作ったり、ハロプロ関連を色々いじったりしています</p>
+  </div>
+
+  <ul class="links-grid">
+    <li>
+      <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">𝕏</div>
+        <div class="link-content">
+          <h3>X (旧Twitter)</h3>
+          <p>@yxmxgxn</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://github.com/ymgn0829" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">🐙</div>
+        <div class="link-content">
+          <h3>GitHub</h3>
+          <p>ymgn0829</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://zenn.dev/yxmxgxn" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">📝</div>
+        <div class="link-content">
+          <h3>Zenn</h3>
+          <p>技術記事など</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://ymgn0829.com" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">🌐</div>
+        <div class="link-content">
+          <h3>個人サイト</h3>
+          <p>ymgn0829.com</p>
+        </div>
+      </a>
+    </li>
+  </ul>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">&copy; <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
+</footer>
+
+</body>
+</html>
