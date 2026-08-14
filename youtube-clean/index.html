@@ -1,0 +1,204 @@
+<!Doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>YouTube URL整形（タイムスタンプは残す） | Tools</title>
+<meta name="description" content="YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して短く整形します。再生開始位置(t=)だけは残します。ブックマークレットあり。">
+
+<meta property="og:title" content="YouTube URL整形（タイムスタンプは残す）">
+<meta property="og:description" content="YouTubeのURLから余計なパラメータを消して短く整形。再生開始位置(t=)だけは残します。">
+<meta property="og:type" content="website">
+
+<link rel="canonical" href="">
+<link rel="stylesheet" href="/assets/common.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "YouTube URL整形（タイムスタンプは残す）",
+  "description": "YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して短く整形します。再生開始位置(t=)だけは残します。",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+}
+</script>
+
+<style>
+  #yt-controls { display: flex; gap: 10px; margin: 0.75rem 0; flex-wrap: wrap; align-items: center; }
+  #yt-controls input[type="text"] {
+    flex: 1; min-width: 100px; padding: 6px 10px;
+    border: 1px solid var(--line); font-size: 14px; background: var(--bg); color: var(--fg);
+  }
+  #yt-options { display: flex; gap: 14px; margin: 0.75rem 0; flex-wrap: wrap; align-items: center; font-size: 14px; }
+  #yt-options label { display: flex; align-items: center; gap: 4px; }
+  #yt-result { margin: 1em 0; }
+  #yt-cmd-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #yt-out {
+    flex: 1; min-width: 200px; padding: 8px 12px;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+    font-size: 13px; word-break: break-all;
+  }
+  #yt-copy {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    cursor: pointer; font-size: 14px; border-radius: 4px;
+  }
+  #yt-open {
+    display: inline-block; margin-top: 0.75em; padding: 8px 16px;
+    background: var(--accent); border-radius: 4px; color: #fff !important;
+    text-decoration: none; font-size: 14px;
+  }
+  #yt-err { color: #c0392b; font-size: 14px; }
+  .yt-bml { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0.75em 0; }
+  .yt-bml-link {
+    display: inline-block; padding: 8px 16px; background: var(--accent);
+    border-radius: 4px; color: #fff !important; text-decoration: none; font-size: 14px;
+  }
+  .yt-bml-copy {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    cursor: pointer; font-size: 14px; border-radius: 4px;
+  }
+</style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="wrap"><a class="brand" href="/">Tools</a></div>
+</header>
+
+<main>
+  <h1>YouTube URL整形</h1>
+  YouTubeのURLから、共有トラッキング(<code>si=</code>)やプレイリストなどの余計なパラメータを消して短く整形します。<br>
+  よくある「URLをきれいにするやつ」と違い、<strong>再生開始位置(<code>t=</code>)だけは残します</strong>。「この瞬間から見て」を保ったまま共有できます。<br>
+
+  <div id="yt-controls">
+    <input type="text" id="yt-url" placeholder="https://www.youtube.com/watch?v=xxxx&t=90s&si=..." autocomplete="off">
+  </div>
+
+  <div id="yt-options">
+    <label><input type="checkbox" id="yt-watchfmt"> youtube.com/watch 形式で出力</label>
+  </div>
+
+  <div id="yt-result" hidden>
+    <div id="yt-cmd-row">
+      <code id="yt-out"></code>
+      <button id="yt-copy" type="button">コピー</button>
+    </div>
+    <a id="yt-open" target="_blank" rel="noopener noreferrer">整形後のURLを開く</a>
+  </div>
+  <p id="yt-err" hidden></p>
+
+  <h2>ブックマークレット</h2>
+  YouTubeの動画ページで実行すると、いま開いている動画の整形済みURL(<code>t=</code>付き)をクリップボードにコピーします。<br>
+  PCでは下のボタンをブックマークバーにドラッグして登録してください。スマホでは「コードをコピー」して、適当なページをブックマークしてから編集でURL欄に貼り付けてください。
+  <div class="yt-bml">
+    <a class="yt-bml-link" href="javascript:(function(){function s(t){if(!t)return 0;if(/^\d+s?$/.test(t))return parseInt(t,10);var m=t.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);return m?(+(m[1]||0))*3600+(+(m[2]||0))*60+(+(m[3]||0)):0}try{var u=new URL(location.href),h=u.hostname.replace(/^(www|m|music)\./,''),id='',p=u.pathname;if(h=='youtu.be')id=p.slice(1).split('/')[0];else if(h=='youtube.com'){if(p=='/watch')id=u.searchParams.get('v')||'';else{var m=p.match(/^\/(?:shorts|live|embed|v)\/([^\/?#]+)/);if(m)id=m[1]}}if(!id){alert('YouTubeの動画ページで実行してください');return}var sec=s(u.searchParams.get('t')||u.searchParams.get('start')||''),o='https://youtu.be/'+id+(sec>0?'?t='+sec:'');navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">YouTube URLをコピー</a>
+    <button type="button" class="yt-bml-copy">コードをコピー</button>
+  </div>
+
+  <h2>消すもの / 残すもの</h2>
+  <ul>
+    <li><strong>残す:</strong> 動画ID と 再生開始位置(<code>t=</code> または <code>start=</code>)。<code>1m30s</code> のような表記も秒(<code>90</code>)に統一します。</li>
+    <li><strong>消す:</strong> <code>si=</code>(共有トラッキング)、<code>pp=</code>、<code>feature=</code>、<code>ab_channel=</code>、<code>list=</code>/<code>index=</code>(プレイリスト文脈)、<code>utm_*</code> など、動画の再生に不要なものすべて。</li>
+    <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。出力はデフォルトで一番短い <code>youtu.be</code> 形式です。</li>
+  </ul>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">&copy; <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
+</footer>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+
+  function toSec(t) {
+    if (!t) return 0;
+    if (/^\d+s?$/.test(t)) return parseInt(t, 10);
+    var m = t.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);
+    return m ? (+(m[1] || 0)) * 3600 + (+(m[2] || 0)) * 60 + (+(m[3] || 0)) : 0;
+  }
+
+  // 入力からビデオIDと開始秒を取り出す。取れなければ id:"" を返す
+  function parse(raw) {
+    raw = raw.trim();
+    if (raw === "") return { id: "", sec: 0 };
+    // 生のビデオIDだけ貼られた場合
+    if (/^[A-Za-z0-9_-]{11}$/.test(raw)) return { id: raw, sec: 0 };
+    var u;
+    try { u = new URL(raw); } catch (e) { return null; }
+    var host = u.hostname.replace(/^(www|m|music)\./, "");
+    var id = "", p = u.pathname;
+    if (host === "youtu.be") {
+      id = p.slice(1).split("/")[0];
+    } else if (host === "youtube.com") {
+      if (p === "/watch") id = u.searchParams.get("v") || "";
+      else {
+        var m = p.match(/^\/(?:shorts|live|embed|v)\/([^\/?#]+)/);
+        if (m) id = m[1];
+      }
+    } else {
+      return null;
+    }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return { id: "", sec: 0 };
+    return { id: id, sec: toSec(u.searchParams.get("t") || u.searchParams.get("start") || "") };
+  }
+
+  function build(id, sec) {
+    if ($("yt-watchfmt").checked) {
+      return "https://www.youtube.com/watch?v=" + id + (sec > 0 ? "&t=" + sec : "");
+    }
+    return "https://youtu.be/" + id + (sec > 0 ? "?t=" + sec : "");
+  }
+
+  function fail(msg) {
+    $("yt-result").hidden = true;
+    $("yt-err").textContent = msg;
+    $("yt-err").hidden = msg === "";
+  }
+
+  function update() {
+    var r = parse($("yt-url").value);
+    if (r === null || (r && r.id === "" && $("yt-url").value.trim() !== "")) {
+      fail("YouTubeのURLとして読み取れませんでした。動画のURLを貼ってください。");
+      return;
+    }
+    if (r.id === "") { fail(""); return; }
+    $("yt-err").hidden = true;
+    $("yt-result").hidden = false;
+    var out = build(r.id, r.sec);
+    $("yt-out").textContent = out;
+    $("yt-open").href = out;
+  }
+
+  ["yt-url", "yt-watchfmt"].forEach(function (id) {
+    $(id).addEventListener(id === "yt-url" ? "input" : "change", update);
+  });
+
+  $("yt-copy").addEventListener("click", function () {
+    navigator.clipboard.writeText($("yt-out").textContent);
+    $("yt-copy").textContent = "コピーしました";
+    setTimeout(function () { $("yt-copy").textContent = "コピー"; }, 1500);
+  });
+
+  var canon = document.querySelector('link[rel="canonical"]');
+  if (canon) canon.setAttribute("href", location.origin + location.pathname);
+
+  document.querySelectorAll(".yt-bml-copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(btn.previousElementSibling.getAttribute("href"));
+      btn.textContent = "コピーしました";
+      setTimeout(function () { btn.textContent = "コードをコピー"; }, 1500);
+    });
+  });
+
+  var pre = new URLSearchParams(location.search).get("url");
+  if (pre) $("yt-url").value = pre;
+  update();
+})();
+</script>
+</body>
+</html>
