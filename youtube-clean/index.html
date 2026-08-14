@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>YouTube URL整形（タイムスタンプは残す） | Tools</title>
-<meta name="description" content="YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して短く整形します。再生開始位置(t=)だけは残します。ブックマークレットあり。">
+<meta name="description" content="YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して整形します。再生開始位置(t=)だけは残します。ブックマークレットあり。">
 
 <meta property="og:title" content="YouTube URL整形（タイムスタンプは残す）">
-<meta property="og:description" content="YouTubeのURLから余計なパラメータを消して短く整形。再生開始位置(t=)だけは残します。">
+<meta property="og:description" content="YouTubeのURLから余計なパラメータを消して整形。再生開始位置(t=)だけは残します。">
 <meta property="og:type" content="website">
 
 <link rel="canonical" href="">
@@ -19,7 +19,7 @@
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "YouTube URL整形（タイムスタンプは残す）",
-  "description": "YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して短く整形します。再生開始位置(t=)だけは残します。",
+  "description": "YouTubeのURLから共有トラッキング(si=)やプレイリストなどの余計なパラメータを消して整形します。再生開始位置(t=)だけは残します。",
   "applicationCategory": "UtilityApplication",
   "operatingSystem": "Any",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
@@ -71,7 +71,7 @@
 
 <main>
   <h1>YouTube URL整形</h1>
-  YouTubeのURLから、共有トラッキング(<code>si=</code>)やプレイリストなどの余計なパラメータを消して短く整形します。<br>
+  YouTubeのURLから、共有トラッキング(<code>si=</code>)やプレイリストなどの余計なパラメータを消して整形します。<br>
   よくある「URLをきれいにするやつ」と違い、<strong>再生開始位置(<code>t=</code>)だけは残します</strong>。「この瞬間から見て」を保ったまま共有できます。<br>
 
   <div id="yt-controls">
@@ -79,7 +79,7 @@
   </div>
 
   <div id="yt-options">
-    <label><input type="checkbox" id="yt-watchfmt"> youtube.com/watch 形式で出力</label>
+    <label><input type="checkbox" id="yt-short"> 短縮URL(youtu.be・s無し)にする</label>
   </div>
 
   <div id="yt-result" hidden>
@@ -95,7 +95,7 @@
   YouTubeの動画ページで実行すると、いま開いている動画の整形済みURL(<code>t=</code>付き)をクリップボードにコピーします。<br>
   PCでは下のボタンをブックマークバーにドラッグして登録してください。スマホでは「コードをコピー」して、適当なページをブックマークしてから編集でURL欄に貼り付けてください。
   <div class="yt-bml">
-    <a class="yt-bml-link" href="javascript:(function(){function s(t){if(!t)return 0;if(/^\d+s?$/.test(t))return parseInt(t,10);var m=t.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);return m?(+(m[1]||0))*3600+(+(m[2]||0))*60+(+(m[3]||0)):0}try{var u=new URL(location.href),h=u.hostname.replace(/^(www|m|music)\./,''),id='',p=u.pathname;if(h=='youtu.be')id=p.slice(1).split('/')[0];else if(h=='youtube.com'){if(p=='/watch')id=u.searchParams.get('v')||'';else{var m=p.match(/^\/(?:shorts|live|embed|v)\/([^\/?#]+)/);if(m)id=m[1]}}if(!id){alert('YouTubeの動画ページで実行してください');return}var sec=s(u.searchParams.get('t')||u.searchParams.get('start')||''),o='https://youtu.be/'+id+(sec>0?'?t='+sec:'');navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">YouTube URLをコピー</a>
+    <a class="yt-bml-link" href="javascript:(function(){function s(t){if(!t)return 0;if(/^\d+s?$/.test(t))return parseInt(t,10);var m=t.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?/);return m?(+(m[1]||0))*3600+(+(m[2]||0))*60+(+(m[3]||0)):0}try{var u=new URL(location.href),h=u.hostname.replace(/^(www|m|music)\./,''),id='',p=u.pathname;if(h=='youtu.be')id=p.slice(1).split('/')[0];else if(h=='youtube.com'){if(p=='/watch')id=u.searchParams.get('v')||'';else{var m=p.match(/^\/(?:shorts|live|embed|v)\/([^\/?#]+)/);if(m)id=m[1]}}if(!id){alert('YouTubeの動画ページで実行してください');return}var sec=s(u.searchParams.get('t')||u.searchParams.get('start')||''),o='https://www.youtube.com/watch?v='+id+(sec>0?'&t='+sec+'s':'');navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">YouTube URLをコピー</a>
     <button type="button" class="yt-bml-copy">コードをコピー</button>
   </div>
 
@@ -103,7 +103,8 @@
   <ul>
     <li><strong>残す:</strong> 動画ID と 再生開始位置(<code>t=</code> または <code>start=</code>)。<code>1m30s</code> のような表記も秒(<code>90</code>)に統一します。</li>
     <li><strong>消す:</strong> <code>si=</code>(共有トラッキング)、<code>pp=</code>、<code>feature=</code>、<code>ab_channel=</code>、<code>list=</code>/<code>index=</code>(プレイリスト文脈)、<code>utm_*</code> など、動画の再生に不要なものすべて。</li>
-    <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。出力はデフォルトで一番短い <code>youtu.be</code> 形式です。</li>
+    <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。</li>
+    <li><strong>出力形式:</strong> デフォルトは <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)。「短縮URL」にチェックすると <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)になります。</li>
   </ul>
 </main>
 
@@ -148,10 +149,10 @@
   }
 
   function build(id, sec) {
-    if ($("yt-watchfmt").checked) {
-      return "https://www.youtube.com/watch?v=" + id + (sec > 0 ? "&t=" + sec : "");
+    if ($("yt-short").checked) {
+      return "https://youtu.be/" + id + (sec > 0 ? "?t=" + sec : "");
     }
-    return "https://youtu.be/" + id + (sec > 0 ? "?t=" + sec : "");
+    return "https://www.youtube.com/watch?v=" + id + (sec > 0 ? "&t=" + sec + "s" : "");
   }
 
   function fail(msg) {
@@ -174,7 +175,7 @@
     $("yt-open").href = out;
   }
 
-  ["yt-url", "yt-watchfmt"].forEach(function (id) {
+  ["yt-url", "yt-short"].forEach(function (id) {
     $(id).addEventListener(id === "yt-url" ? "input" : "change", update);
   });
 
