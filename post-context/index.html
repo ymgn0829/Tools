@@ -1,0 +1,252 @@
+<!Doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Xポスト前後検索 | Tools</title>
+<meta name="description" content="XのポストURLを貼るだけで、そのポストの前後(±6時間〜7日)に投稿者が何を言っていたかを検索するコマンドとリンクを生成するツールです。日時の入力は不要です。">
+
+<meta property="og:title" content="Xポスト前後検索">
+<meta property="og:description" content="XのポストURLを貼るだけで、そのポストの前後に投稿者が何を言っていたかを検索するコマンドとリンクを生成します。">
+<meta property="og:type" content="website">
+
+<link rel="canonical" href="">
+<link rel="stylesheet" href="/assets/common.css">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Xポスト前後検索",
+  "description": "XのポストURLを貼るだけで、そのポストの前後(±6時間〜7日)に投稿者が何を言っていたかを検索するコマンドとリンクを生成するツールです。日時の入力は不要です。",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "JPY" }
+}
+</script>
+
+<style>
+  #ctx-controls {
+    display: flex; gap: 10px; margin: 0.75rem 0;
+    flex-wrap: wrap; align-items: center;
+  }
+  #ctx-controls input[type="text"] {
+    flex: 1; min-width: 100px; padding: 6px 10px;
+    border: 1px solid var(--line); font-size: 14px;
+    background: var(--bg); color: var(--fg);
+  }
+  #ctx-options {
+    display: flex; gap: 14px; margin: 0.75rem 0;
+    flex-wrap: wrap; align-items: center; font-size: 14px;
+  }
+  #ctx-options select {
+    padding: 6px 10px; border: 1px solid var(--line); font-size: 14px; margin-left: 6px;
+    background: var(--bg); color: var(--fg);
+  }
+  #ctx-options label { display: flex; align-items: center; gap: 4px; }
+  #ctx-result { margin: 1em 0; }
+  #ctx-time-box { font-size: 14px; }
+  #ctx-cmd-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #ctx-cmd {
+    flex: 1; min-width: 200px; padding: 8px 12px;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+    font-size: 13px; word-break: break-all;
+  }
+  #ctx-copy {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    cursor: pointer; font-size: 14px; border-radius: 4px;
+  }
+  #ctx-open {
+    display: inline-block; margin-top: 0.75em; padding: 8px 16px;
+    background: var(--accent); border-radius: 4px; color: #fff !important;
+    text-decoration: none; font-size: 14px;
+  }
+  #ctx-err { color: #c0392b; font-size: 14px; }
+  .ctx-bml {
+    display: flex; gap: 10px; align-items: center;
+    flex-wrap: wrap; margin: 0.75em 0;
+  }
+  .ctx-bml-link {
+    display: inline-block; padding: 8px 16px; background: var(--accent);
+    border-radius: 4px; color: #fff !important; text-decoration: none; font-size: 14px;
+  }
+  .ctx-bml-copy {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    cursor: pointer; font-size: 14px; border-radius: 4px;
+  }
+</style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="wrap"><a class="brand" href="/">Tools</a></div>
+</header>
+
+<main>
+  <h1>Xポスト前後検索</h1>
+  XのポストURLを貼るだけで、そのポストの前後に投稿者が何を言っていたかを検索するコマンドとリンクを生成します。<br>
+  ポストIDから投稿時刻を逆算するので、日時を手入力する必要はありません。時刻はポストの瞬間を中心に秒単位で正確に切り出します。<br>
+
+  <div id="ctx-controls">
+    <input type="text" id="ctx-url" placeholder="https://x.com/ユーザー名/status/0000000000" autocomplete="off">
+  </div>
+
+  <div id="ctx-options">
+    <label>前後の範囲
+      <select id="ctx-range">
+        <option value="21600">±6時間</option>
+        <option value="43200">±12時間</option>
+        <option value="86400" selected>±1日</option>
+        <option value="259200">±3日</option>
+        <option value="604800">±7日</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="ctx-noreply"> リプライを除外</label>
+    <label><input type="checkbox" id="ctx-noquote"> 引用を除外</label>
+    <label><input type="checkbox" id="ctx-withrt"> RTも含める</label>
+    <label><input type="checkbox" id="ctx-unixfmt"> unix秒形式で出力</label>
+  </div>
+
+  <div id="ctx-result" hidden>
+    <p id="ctx-time-box">投稿日時 (JST)：<strong id="ctx-time"></strong></p>
+    <div id="ctx-cmd-row">
+      <code id="ctx-cmd"></code>
+      <button id="ctx-copy" type="button">コピー</button>
+    </div>
+    <a id="ctx-open" target="_blank" rel="noopener noreferrer">Xの「最新」タブでこの検索を開く</a>
+  </div>
+  <p id="ctx-err" hidden></p>
+
+  <h2>ブックマークレット</h2>
+  Xでポストのページを開いた状態で実行すると、URLのコピペなしでそのまま前後検索を開けます。<br>
+  PCでは下のボタンをブックマークバーにドラッグして登録してください。スマホでは「コードをコピー」して、適当なページをブックマークしてから編集でURL欄に貼り付けてください。
+  <div class="ctx-bml">
+    <a class="ctx-bml-link" href="javascript:(function(){var m=location.href.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)\/status(?:es)?\/(\d+)/);if(!m){alert('Xのポストのページで開いてください');return}if(m[1].toLowerCase()==='i'){alert('ユーザー名入りのポストURLで開いてください');return}var s=Math.floor(Number((BigInt(m[2])>>22n)+1288834974657n)/1000);var r=86400;var p=function(n){return('0'+n).slice(-2)};var j=function(x){var d=new Date((x+32400)*1000);return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+'_'+p(d.getUTCHours())+':'+p(d.getUTCMinutes())+':'+p(d.getUTCSeconds())+'_JST'};window.open('https://x.com/search?q='+encodeURIComponent('from:'+m[1]+' since:'+j(s-r)+' until:'+j(s+r))+'\x26f=live')})();">ポスト前後1日を検索</a>
+    <button type="button" class="ctx-bml-copy">コードをコピー</button>
+  </div>
+  <div class="ctx-bml">
+    <a class="ctx-bml-link" href="javascript:(function(){var m=location.href.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)\/status(?:es)?\/(\d+)/);if(!m){alert('Xのポストのページで開いてください');return}if(m[1].toLowerCase()==='i'){alert('ユーザー名入りのポストURLで開いてください');return}var s=Math.floor(Number((BigInt(m[2])>>22n)+1288834974657n)/1000);var r=259200;var p=function(n){return('0'+n).slice(-2)};var j=function(x){var d=new Date((x+32400)*1000);return d.getUTCFullYear()+'-'+p(d.getUTCMonth()+1)+'-'+p(d.getUTCDate())+'_'+p(d.getUTCHours())+':'+p(d.getUTCMinutes())+':'+p(d.getUTCSeconds())+'_JST'};window.open('https://x.com/search?q='+encodeURIComponent('from:'+m[1]+' since:'+j(s-r)+' until:'+j(s+r))+'\x26f=live')})();">ポスト前後3日を検索</a>
+    <button type="button" class="ctx-bml-copy">コードをコピー</button>
+  </div>
+  <div class="ctx-bml">
+    <a class="ctx-bml-link" id="ctx-bml-open" href="#">このツールで開く(範囲・フィルターを選びたいとき)</a>
+    <button type="button" class="ctx-bml-copy">コードをコピー</button>
+  </div>
+
+  <h2>こんなときに</h2>
+  <ul>
+    <li>あるポストを見て「この人、この日の前後に何を言ってたんだろう」と気になったとき。前後の流れをまとめて追えます。</li>
+    <li>「RP &gt; 〇〇」のようなRTへの感想だけが流れてきて、何をRTしたのか分からないとき。「RTも含める」をオンにして前後検索すると、RTした時刻でそのRTがタイムラインに並ぶので、感想の対象を特定できます(XのUI変更でRTとポストが別々に表示され、RT後の感想が読み取りにくくなった問題の回避に使えます)。</li>
+  </ul>
+
+  <h2>仕組み</h2>
+  XのポストIDには投稿時刻がミリ秒単位で埋め込まれています。このツールはIDから時刻を逆算し、検索演算子 <code>since:</code> / <code>until:</code> に日本時間付きの日時(<code>2026-07-15_15:32:28_JST</code> のような形式)を渡して前後の期間を切り出します。<br>
+  <code>_JST</code> を明示するのでUTCとの時差の影響を受けず、ポストの瞬間を中心とした秒単位で正確な範囲になります。日時形式なので、検索したあとに検索窓で日付の数字を書き換えれば範囲を広げたり狭めたりも簡単です。<br>
+  「unix秒形式で出力」をオンにすると <code>since_time:</code> / <code>until_time:</code>(unix秒指定)の形式になります。精度・時差の扱いは同じです。<br>
+  なお、検索はX上で行われるため、鍵アカウント・削除済みポストは表示されません。URLのユーザー名部分は現在のものと異なる場合があります(改名時など)。
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">&copy; <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
+</footer>
+
+<script>
+(function () {
+  var EPOCH = 1288834974657n;
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return String(n).padStart(2, "0"); }
+
+  function jstStr(sec) {
+    var d = new Date((sec + 9 * 3600) * 1000);
+    return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate()) +
+      "_" + pad(d.getUTCHours()) + ":" + pad(d.getUTCMinutes()) + ":" + pad(d.getUTCSeconds()) + "_JST";
+  }
+
+  function fail(msg) {
+    $("ctx-result").hidden = true;
+    $("ctx-err").textContent = msg;
+    $("ctx-err").hidden = msg === "";
+  }
+
+  function update() {
+    var m = $("ctx-url").value.match(/(?:x|twitter)\.com\/([A-Za-z0-9_]+)\/status(?:es)?\/(\d+)/);
+    if (!m) {
+      fail($("ctx-url").value.trim() === "" ? "" :
+        "URLからユーザー名とポストIDを読み取れませんでした。x.com/ユーザー名/status/番号 の形のURLを貼ってください。");
+      return;
+    }
+    var user = m[1];
+    var id = BigInt(m[2]);
+    if (user.toLowerCase() === "i") {
+      fail("このURL形式にはユーザー名が含まれていません。ポストを開いて x.com/ユーザー名/status/番号 の形のURLをコピーしてください。");
+      return;
+    }
+    if (id < 300000000000000n) {
+      fail("2010年11月以前の古いポストはIDに時刻が含まれていないため、このツールでは扱えません。");
+      return;
+    }
+    $("ctx-err").hidden = true;
+    $("ctx-result").hidden = false;
+
+    var ms = Number((id >> 22n) + EPOCH);
+    var sec = Math.floor(ms / 1000);
+    var r = parseInt($("ctx-range").value, 10);
+
+    var jst = new Date(ms + 9 * 3600 * 1000);
+    $("ctx-time").textContent =
+      jst.getUTCFullYear() + "-" + pad(jst.getUTCMonth() + 1) + "-" + pad(jst.getUTCDate()) +
+      " " + pad(jst.getUTCHours()) + ":" + pad(jst.getUTCMinutes()) + ":" + pad(jst.getUTCSeconds());
+
+    var q;
+    if ($("ctx-unixfmt").checked) {
+      q = "from:" + user + " since_time:" + (sec - r) + " until_time:" + (sec + r);
+    } else {
+      q = "from:" + user + " since:" + jstStr(sec - r) + " until:" + jstStr(sec + r);
+    }
+    if ($("ctx-noreply").checked) q += " -filter:replies";
+    if ($("ctx-noquote").checked) q += " -filter:quote";
+    if ($("ctx-withrt").checked) q += " include:nativeretweets";
+
+    $("ctx-cmd").textContent = q;
+    $("ctx-open").href = "https://x.com/search?q=" + encodeURIComponent(q) + "&f=live";
+  }
+
+  ["ctx-url", "ctx-range", "ctx-noreply", "ctx-noquote", "ctx-withrt", "ctx-unixfmt"].forEach(function (id) {
+    $(id).addEventListener(id === "ctx-url" ? "input" : "change", update);
+  });
+
+  $("ctx-copy").addEventListener("click", function () {
+    navigator.clipboard.writeText($("ctx-cmd").textContent);
+    $("ctx-copy").textContent = "コピーしました";
+    setTimeout(function () { $("ctx-copy").textContent = "コピー"; }, 1500);
+  });
+
+  // 「このツールで開く」ブックマークレットは、このページ自身のURLを指すよう動的生成
+  // （どのドメインにホストしても自動で正しいURLになる）
+  var toolUrl = location.origin + location.pathname;
+  $("ctx-bml-open").setAttribute(
+    "href",
+    "javascript:window.open('" + toolUrl + "?url='+encodeURIComponent(location.href));"
+  );
+
+  // canonical も自ページに合わせる
+  var canon = document.querySelector('link[rel="canonical"]');
+  if (canon) canon.setAttribute("href", toolUrl);
+
+  document.querySelectorAll(".ctx-bml-copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(btn.previousElementSibling.getAttribute("href"));
+      btn.textContent = "コピーしました";
+      setTimeout(function () { btn.textContent = "コードをコピー"; }, 1500);
+    });
+  });
+
+  var pre = new URLSearchParams(location.search).get("url");
+  if (pre) $("ctx-url").value = pre;
+  update();
+})();
+</script>
+</body>
+</html>
