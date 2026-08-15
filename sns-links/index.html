@@ -77,31 +77,24 @@
       transition: all 0.3s;
     }
 
+    /* 長いIDのカード: アイコン+タイトルが1行目、IDは全幅で2行目に回り込ませる */
     .link-card.vertical {
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: left;
-      gap: 0;
-      justify-content: flex-start;
-    }
-
-    .link-card.vertical .link-icon {
-      font-size: 1rem;
-      width: auto;
-      margin-bottom: 0.25rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 0 0.75rem;
     }
 
     .link-card.vertical .link-content {
-      flex: 1;
-      width: 100%;
+      display: contents;
     }
 
     .link-card.vertical .link-content h3 {
-      font-size: 0.85rem;
+      grid-column: 2;
     }
 
     .link-card.vertical .link-content p {
-      font-size: 0.7rem;
+      grid-column: 1 / -1;
     }
 
     .link-card:hover {
@@ -196,7 +189,7 @@
         </div>
         <div class="link-content">
           <h3>Bluesky</h3>
-          <p>@yxmxgxn<br>.bsky.social</p>
+          <p>@yxmxgxn.bsky.social</p>
         </div>
       </a>
     </li>
@@ -229,7 +222,7 @@
         </div>
         <div class="link-content">
           <h3>Hatena Blog</h3>
-          <p>yxmxgxn<br>.hatenablog.com</p>
+          <p>yxmxgxn.hatenablog.com</p>
         </div>
       </a>
     </li>
@@ -336,7 +329,7 @@
 </main>
 
 <footer class="site-footer">
-  <div class="wrap">&copy; <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
+  <div class="wrap">&copy; 2026 <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
 </footer>
 
 </body>
