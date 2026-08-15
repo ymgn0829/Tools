@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8RGB指定</title>
+<meta property="og:title" content="8-Step RGB Grid Color Space Specification Method">
+<meta property="og:image" content="https://ymgn0829.github.io/8RGBSpecification/8RGB.png">
+<meta property="og:url" content="https://ymgn0829.github.io/8RGBSpecification/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ymgn0829.github.io/8RGBSpecification/8RGB.png">
+<meta name="twitter:creator" content="@yxmxgxn">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --panel: #f5f5f5;
+    --border: #dddddd;
+    --text: #111111;
+    --muted: #888;
+    --accent: #111111;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .container { width: 100%; max-width: 440px; }
+
+  h1 {
+    font-size: 17px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  /* 3分割プレビュー */
+  .preview-wrap {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    height: 120px;
+  }
+
+  .swatch {
+    flex: 1;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+    transition: background 0.1s ease;
+  }
+
+  .swatch.main { flex: 2; border: 2px solid #111; }
+
+  .swatch-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(0,0,0,0.35);
+  }
+  .swatch-label.light { color: rgba(255,255,255,0.6); }
+
+  /* コード */
+  .codes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .code-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+  }
+
+  .code-label { font-size: 15px; color: var(--muted); }
+
+  .code-value {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+    user-select: all;
+  }
+  .code-value:hover { opacity: 0.6; }
+
+  /* スライダー */
+  .sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .channel-label {
+    font-size: 18px;
+    font-weight: 700;
+    width: 16px;
+    text-align: center;
+  }
+  .channel-label.r { color: #cc0000; }
+  .channel-label.g { color: #006600; }
+  .channel-label.b { color: #0000cc; }
+
+  .steps {
+    display: flex;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .step-btn {
+    flex: 1;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.1s ease;
+    background: var(--panel);
+  }
+  .step-btn:hover { border-color: #999; }
+  .step-btn.active { border: 2px solid #111; }
+
+  /* ◁▷ボタン */
+  .arrow-btn {
+    width: 28px;
+    height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--panel);
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+    flex-shrink: 0;
+  }
+  .arrow-btn:hover { border-color: #999; background: #eee; }
+  .arrow-btn:active { background: #ddd; }
+  .arrow-btn:disabled { opacity: 0.2; cursor: default; }
+
+  .value-display {
+    font-size: 22px;
+    font-weight: 700;
+    width: 22px;
+    text-align: center;
+    color: var(--accent);
+  }
+
+  .footer {
+    margin-top: 28px;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>8RGB Specification</h1>
+
+  <div class="preview-wrap">
+    <div class="swatch" id="swatch-prev"><span class="swatch-label" id="label-prev"></span></div>
+    <div class="swatch main" id="swatch-main"><span class="swatch-label" id="label-main"></span></div>
+    <div class="swatch" id="swatch-next"><span class="swatch-label" id="label-next"></span></div>
+  </div>
+
+  <div class="codes">
+    <div class="code-row">
+      <span class="code-label">8RGB</span>
+      <span class="code-value" id="code8rgb" title="クリックでコピー"></span>
+    </div>
+    <div class="code-row">
+      <span class="code-label">HEX</span>
+      <span class="code-value" id="codeHex" title="クリックでコピー"></span>
+    </div>
+  </div>
+
+  <div class="sliders">
+    <div class="slider-row">
+      <span class="channel-label r">R</span>
+      <button class="arrow-btn" id="dec-r">◁</button>
+      <div class="steps" id="steps-r"></div>
+      <button class="arrow-btn" id="inc-r">▷</button>
+      <span class="value-display" id="val-r">0</span>
+    </div>
+    <div class="slider-row">
+      <span class="channel-label g">G</span>
+      <button class="arrow-btn" id="dec-g">◁</button>
+      <div class="steps" id="steps-g"></div>
+      <button class="arrow-btn" id="inc-g">▷</button>
+      <span class="value-display" id="val-g">0</span>
+    </div>
+    <div class="slider-row">
+      <span class="channel-label b">B</span>
+      <button class="arrow-btn" id="dec-b">◁</button>
+      <div class="steps" id="steps-b"></div>
+      <button class="arrow-btn" id="inc-b">▷</button>
+      <span class="value-display" id="val-b">0</span>
+    </div>
+  </div>
+
+  <div class="footer">各チャンネル0〜7の8段階でクリックした値の前後が両側になります<br>
+  <a href="https://x.com/yxmxgxn" target="_blank">@yxmxgxn</a></div>
+</div>
+
+<script>
+  const state = { r: 0, g: 5, b: 6 };
+  let compareChannel = 'r';
+
+  function toRGB255(v) {
+    if (v === 0) return 0;
+    if (v === 7) return 255;
+    return Math.round(v * 255 / 7);
+  }
+
+  function toHex255(v) {
+    return toRGB255(v).toString(16).padStart(2, '0').toUpperCase();
+  }
+
+  function makeBg(r, g, b) {
+    return `rgb(${toRGB255(r)},${toRGB255(g)},${toRGB255(b)})`;
+  }
+
+  function makeHex(r, g, b) {
+    return `#${toHex255(r)}${toHex255(g)}${toHex255(b)}`;
+  }
+
+  function isLight(r, g, b) {
+    return (0.299*toRGB255(r) + 0.587*toRGB255(g) + 0.114*toRGB255(b)) > 160;
+  }
+
+  function setCompare(ch) {
+    compareChannel = ch;
+  }
+
+  function update() {
+    const { r, g, b } = state;
+
+    document.getElementById('code8rgb').textContent = `#$${r}${g}${b}`;
+    document.getElementById('codeHex').textContent = makeHex(r, g, b);
+    document.getElementById('val-r').textContent = r;
+    document.getElementById('val-g').textContent = g;
+    document.getElementById('val-b').textContent = b;
+
+    // ◁▷の有効無効
+    ['r','g','b'].forEach(ch => {
+      document.getElementById(`dec-${ch}`).disabled = state[ch] === 0;
+      document.getElementById(`inc-${ch}`).disabled = state[ch] === 7;
+    });
+
+    // 3分割プレビュー
+    const ch = compareChannel;
+    const cur = state[ch];
+    const prev = Math.max(0, cur - 1);
+    const next = Math.min(7, cur + 1);
+
+    function sc(val) {
+      return {
+        rr: ch==='r' ? val : r,
+        gg: ch==='g' ? val : g,
+        bb: ch==='b' ? val : b
+      };
+    }
+
+    const pc = sc(prev), mc = sc(cur), nc = sc(next);
+
+    document.getElementById('swatch-prev').style.background = makeBg(pc.rr,pc.gg,pc.bb);
+    document.getElementById('swatch-main').style.background = makeBg(mc.rr,mc.gg,mc.bb);
+    document.getElementById('swatch-next').style.background = makeBg(nc.rr,nc.gg,nc.bb);
+
+    function setLabel(id, text, rr, gg, bb) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `swatch-label ${isLight(rr,gg,bb) ? '' : 'light'}`;
+    }
+
+    setLabel('label-prev', prev===cur ? '—' : `${ch.toUpperCase()}=${prev}`, pc.rr,pc.gg,pc.bb);
+    setLabel('label-main', `${ch.toUpperCase()}=${cur}`, mc.rr,mc.gg,mc.bb);
+    setLabel('label-next', next===cur ? '—' : `${ch.toUpperCase()}=${next}`, nc.rr,nc.gg,nc.bb);
+
+    // ステップボタン色
+    ['r','g','b'].forEach(ch2 => {
+      document.querySelectorAll(`#steps-${ch2} .step-btn`).forEach(btn => {
+        const v = parseInt(btn.dataset.val);
+        btn.classList.toggle('active', v === state[ch2]);
+        btn.style.background = makeBg(
+          ch2==='r' ? v : r,
+          ch2==='g' ? v : g,
+          ch2==='b' ? v : b
+        );
+      });
+    });
+  }
+
+  function buildSteps(ch) {
+    const container = document.getElementById(`steps-${ch}`);
+    for (let i = 0; i < 8; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'step-btn';
+      btn.dataset.val = i;
+      btn.addEventListener('click', () => {
+        state[ch] = i;
+        setCompare(ch);
+        update();
+      });
+      container.appendChild(btn);
+    }
+  }
+
+  ['r','g','b'].forEach(ch => {
+    buildSteps(ch);
+
+    document.getElementById(`dec-${ch}`).addEventListener('click', () => {
+      if (state[ch] > 0) { state[ch]--; setCompare(ch); update(); }
+    });
+    document.getElementById(`inc-${ch}`).addEventListener('click', () => {
+      if (state[ch] < 7) { state[ch]++; setCompare(ch); update(); }
+    });
+  });
+
+  // コピー
+  ['code8rgb','codeHex'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function() {
+      navigator.clipboard.writeText(this.textContent).catch(() => {});
+    });
+  });
+
+  update();
+</script>
+</body>
+</html>

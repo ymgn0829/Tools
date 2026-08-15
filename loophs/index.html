@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoopHS 9-Step L</title>
+<meta property="og:title" content="Loop Hue Saturation 9 Step Lightness Color Space Specification Method">
+<meta property="og:image" content="https://ymgn0829.github.io/8RGBSpecification/LoopHS.png">
+<meta property="og:url" content="https://ymgn0829.github.io/8RGBSpecification/loophs.html">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://ymgn0829.github.io/8RGBSpecification/LoopHS.png">
+<meta name="twitter:creator" content="@yxmxgxn">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #fff;
+    color: #111;
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .container { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+  h1 { font-size: 14px; letter-spacing: 0.15em; color: #888; text-transform: uppercase; }
+
+  .wheel-wrap { position: relative; width: 300px; height: 300px; }
+  canvas { display: block; cursor: crosshair; }
+
+  .center-label {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .code-val {
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    pointer-events: all;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: opacity 0.1s;
+  }
+  .code-val:hover { opacity: 0.6; }
+  .code-8rgb { color: #111; }
+  .code-hex { color: #555; font-size: 14px; }
+
+  /* Lスライダー */
+  .l-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .l-label { font-size: 15px; font-weight: 700; color: #888; width: 16px; }
+  .l-steps { display: flex; gap: 3px; flex: 1; }
+  .l-btn {
+    flex: 1;
+    height: 28px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 9px;
+    transition: all 0.1s;
+    background: #f5f5f5;
+  }
+  .l-btn:hover { border-color: #999; }
+  .l-btn.active { border: 2px solid #111; }
+  .l-val { font-size: 16px; font-weight: 700; width: 20px; text-align: center; }
+
+  .footer { font-size: 14px; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Loop HS 9 Step L Specification</h1>
+
+  <div class="wheel-wrap">
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div class="center-label">
+      <span class="code-val code-8rgb" id="code8rgb">#$000</span>
+      <span class="code-val code-hex" id="codeHex">#000000</span>
+    </div>
+  </div>
+
+  <div class="l-row">
+    <span class="l-label">L</span>
+    <div class="l-steps" id="l-steps"></div>
+    <span class="l-val" id="l-val">4</span>
+  </div>
+
+  <div class="hsl-display" id="hsl-display" style="font-size:13px;color:#888;text-align:center;width:100%;"></div>
+  <div class="footer">色相環をクリックで選択 · L で明度調整<br><a href="https://x.com/yxmxgxn" target="_blank" style="color:#aaa;">@yxmxgxn</a></div>
+</div>
+
+<script>
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const W = 300, CX = W/2, CY = W/2;
+  const R_OUT = 140, R_IN = 42; // ドーナツ
+
+  let selectedAngle = 0;
+  let selectedRadius = R_OUT;
+  let lVal = 4;
+
+  function toRGB255(v) {
+    if (v === 0) return 0;
+    if (v === 7) return 255;
+    return Math.round(v * 255 / 7);
+  }
+
+  function hslToRgb(h, s, l) {
+    // h: 0-360, s: 0-1, l: 0-1
+    const c = (1 - Math.abs(2*l - 1)) * s;
+    const x = c * (1 - Math.abs((h/60) % 2 - 1));
+    const m = l - c/2;
+    let r=0,g=0,b=0;
+    if (h < 60)      { r=c; g=x; b=0; }
+    else if (h < 120){ r=x; g=c; b=0; }
+    else if (h < 180){ r=0; g=c; b=x; }
+    else if (h < 240){ r=0; g=x; b=c; }
+    else if (h < 300){ r=x; g=0; b=c; }
+    else             { r=c; g=0; b=x; }
+    return [
+      Math.round((r+m)*255),
+      Math.round((g+m)*255),
+      Math.round((b+m)*255)
+    ];
+  }
+
+  function rgbTo8rgb(r, g, b) {
+    const r8 = r === 0 ? 0 : r === 255 ? 7 : Math.round(r * 7 / 255);
+    const g8 = g === 0 ? 0 : g === 255 ? 7 : Math.round(g * 7 / 255);
+    const b8 = b === 0 ? 0 : b === 255 ? 7 : Math.round(b * 7 / 255);
+    return [r8, g8, b8];
+  }
+
+  function toHexStr(r, g, b) {
+    return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0').toUpperCase()).join('');
+  }
+
+  function drawWheel() {
+    ctx.clearRect(0, 0, W, W);
+    const l = lVal / 8;
+    const grayout = lVal === 0 || lVal === 8;
+
+    // ドーナツを細かいセグメントで描く
+    const steps = 360;
+    for (let i = 0; i < steps; i++) {
+      const angle = (i / steps) * Math.PI * 2 - Math.PI/2;
+      const nextAngle = ((i+1) / steps) * Math.PI * 2 - Math.PI/2;
+      const hue = (i / steps) * 360;
+
+      // 外側（高彩度）から内側（低彩度）へグラデーション
+      const grad = ctx.createRadialGradient(CX, CY, R_IN, CX, CY, R_OUT);
+      const [r1,g1,b1] = hslToRgb(hue, 0.0, l);
+      const [r2,g2,b2] = grayout ? hslToRgb(hue, 0.0, l) : hslToRgb(hue, 1.0, l);
+      grad.addColorStop(0, `rgb(${r1},${g1},${b1})`);
+      grad.addColorStop(1, `rgb(${r2},${g2},${b2})`);
+
+      ctx.beginPath();
+      ctx.moveTo(CX + Math.cos(angle) * R_IN, CY + Math.sin(angle) * R_IN);
+      ctx.arc(CX, CY, R_OUT, angle, nextAngle);
+      ctx.arc(CX, CY, R_IN, nextAngle, angle, true);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // 選択マーカー
+    const markerAngle = selectedAngle - Math.PI/2;
+    const t = (selectedRadius - R_IN) / (R_OUT - R_IN);
+    const markerR = R_IN + t * (R_OUT - R_IN);
+    const mx = CX + Math.cos(markerAngle) * markerR;
+    const my = CY + Math.sin(markerAngle) * markerR;
+
+    ctx.beginPath();
+    ctx.arc(mx, my, 8, 0, Math.PI*2);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(mx, my, 8, 0, Math.PI*2);
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  function getCurrentColor() {
+    if (lVal === 0) return [0, 0, 0];
+    if (lVal === 8) return [255, 255, 255];
+    const l = lVal / 8;
+    const hue = (selectedAngle / (Math.PI * 2)) * 360;
+    const t = (selectedRadius - R_IN) / (R_OUT - R_IN);
+    const sat = t < 0.05 ? 0 : t; // S≒0は無彩色扱い
+    return hslToRgb(hue, sat, l);
+  }
+
+  function getCurrentHSL() {
+    if (lVal === 0) return { h: 0, s: 0, l: 0 };
+    if (lVal === 8) return { h: 0, s: 0, l: 100 };
+    const hue = Math.round((selectedAngle / (Math.PI * 2)) * 360);
+    const t = (selectedRadius - R_IN) / (R_OUT - R_IN);
+    const sat = t < 0.05 ? 0 : t;
+    const l = lVal / 8;
+    return { h: hue, s: Math.round(sat * 100), l: Math.round(l * 100) };
+  }
+
+  function updateCodes() {
+    const [r, g, b] = getCurrentColor();
+    const [r8, g8, b8] = rgbTo8rgb(r, g, b);
+    document.getElementById('code8rgb').textContent = `#$${r8}${g8}${b8}`;
+    document.getElementById('codeHex').textContent = toHexStr(r, g, b);
+    const { h, s, l } = getCurrentHSL();
+    const hslEl = document.getElementById('hsl-display');
+    if (hslEl) hslEl.textContent = s === 0 ? `HSL( — , — , ${l}% )` : `HSL( ${h}° , ${s}% , ${l}% )`;
+  }
+
+  function getAngleRadius(e) {
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    const dx = cx - rect.left - CX;
+    const dy = cy - rect.top - CY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const angle = Math.atan2(dy, dx) + Math.PI/2;
+    return { angle: (angle + Math.PI*2) % (Math.PI*2), dist };
+  }
+
+  function handleClick(e) {
+    e.preventDefault();
+    const { angle, dist } = getAngleRadius(e);
+    if (dist >= R_IN && dist <= R_OUT) {
+      selectedAngle = angle;
+      selectedRadius = dist;
+      drawWheel();
+      updateCodes();
+    }
+  }
+
+  canvas.addEventListener('click', handleClick);
+  canvas.addEventListener('touchstart', handleClick, { passive: false });
+  canvas.addEventListener('mousemove', (e) => {
+    if (e.buttons === 1) handleClick(e);
+  });
+
+  // Lスライダー
+  const lSteps = document.getElementById('l-steps');
+  for (let i = 0; i < 9; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'l-btn';
+    btn.dataset.val = i;
+    btn.addEventListener('click', () => {
+      lVal = i;
+      document.getElementById('l-val').textContent = i;
+      document.querySelectorAll('.l-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) === lVal));
+      // Lに応じてボタン色
+      updateLButtons();
+      drawWheel();
+      updateCodes();
+    });
+    lSteps.appendChild(btn);
+  }
+
+  function updateLButtons() {
+    document.querySelectorAll('.l-btn').forEach(btn => {
+      const v = parseInt(btn.dataset.val);
+      const l = v / 7;
+      btn.style.background = `hsl(0,0%,${Math.round((v/8)*100)}%)`;
+      btn.classList.toggle('active', v === lVal);
+    });
+  }
+
+  // コピー
+  ['code8rgb','codeHex'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function() {
+      navigator.clipboard.writeText(this.textContent).catch(()=>{});
+    });
+  });
+
+  updateLButtons();
+  drawWheel();
+  updateCodes();
+</script>
+</body>
+</html>

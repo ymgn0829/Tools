@@ -24,7 +24,7 @@
 
 body {
   margin: 0;
-  font-family: 'Noto Sans JP', system-ui, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
   line-height: 1.7;
   color: var(--fg);
   background: var(--bg);
