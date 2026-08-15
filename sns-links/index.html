@@ -29,18 +29,30 @@
 
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
+    @media (max-width: 768px) {
+      .links-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .links-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .link-card {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      padding: 1rem;
+      gap: 0.75rem;
+      padding: 0.75rem;
       border: 1px solid var(--line);
       border-radius: 8px;
       text-decoration: none;
@@ -55,21 +67,21 @@
     }
 
     .link-icon {
-      font-size: 1.5rem;
-      width: 2rem;
+      font-size: 1.3rem;
+      width: 1.8rem;
       text-align: center;
       flex-shrink: 0;
     }
 
     .link-content h3 {
       margin: 0;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
     }
 
     .link-content p {
-      margin: 0.25rem 0 0;
-      font-size: 0.8rem;
+      margin: 0.15rem 0 0;
+      font-size: 0.75rem;
       color: var(--muted);
     }
   </style>
@@ -82,8 +94,8 @@
 
 <main>
   <div class="profile">
-    <h1 class="profile-name">@yxmxgxn</h1>
-    <p class="profile-bio">ウェブツール作ったり、ハロプロ関連を色々いじったりしています</p>
+    <h1 class="profile-name">よみがな @yxmxgxn</h1>
+    <p class="profile-bio">にしてハロプロのファンサイトやってます<br>宮本佳林・ハロプロ・ポストロック・マスロック・シューゲイザー・ホラー映画が好きです<br>ちょっとしたツール作ってます。AIとかテックの話も好きです</p>
   </div>
 
   <ul class="links-grid">
@@ -98,7 +110,7 @@
     </li>
     <li>
       <a href="https://x.com/yxmxgxn_AI" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon">🤖</div>
+        <div class="link-icon">𝕏</div>
         <div class="link-content">
           <h3>X (AI bot)</h3>
           <p>@yxmxgxn_AI</p>
@@ -107,7 +119,7 @@
     </li>
     <li>
       <a href="https://www.threads.com/@yxmxgxn" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon">💬</div>
+        <div class="link-icon">🦋</div>
         <div class="link-content">
           <h3>Threads</h3>
           <p>@yxmxgxn</p>
@@ -116,10 +128,19 @@
     </li>
     <li>
       <a href="https://bsky.app/profile/yxmxgxn.bsky.social" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon">🦋</div>
+        <div class="link-icon">◐</div>
         <div class="link-content">
           <h3>Bluesky</h3>
           <p>@yxmxgxn.bsky.social</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://karin-archive.com/" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">💜</div>
+        <div class="link-content">
+          <h3>karin-archive</h3>
+          <p>ハロプロファンサイト</p>
         </div>
       </a>
     </li>
