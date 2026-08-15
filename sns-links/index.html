@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>SNS Links</title>
   <meta name="description" content="SNS / ウェブサイトのリンク集">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' text-anchor='middle' x='50'>👓</text></svg>">
   <link rel="stylesheet" href="/assets/common.css">
   <style>
     .profile {
@@ -19,6 +20,13 @@
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .profile-icon {
+      font-size: 1.2rem;
     }
 
     .profile-bio {
@@ -97,6 +105,19 @@
       font-size: 0.75rem;
       color: var(--muted);
     }
+
+    .link-card.karin-archive {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .link-card.karin-archive .link-icon {
+      display: none;
+    }
+
+    .link-card.karin-archive .link-content {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -107,7 +128,7 @@
 
 <main>
   <div class="profile">
-    <h1 class="profile-name">よみがな @yxmxgxn</h1>
+    <h1 class="profile-name"><span class="profile-icon">👓</span>よみがな @yxmxgxn</h1>
     <p class="profile-bio"><a href="https://karin-archive.com/" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: underline;">ハロプロのファンサイト</a>やってます<br>宮本佳林・ハロプロ・ポストロック・マスロック・シューゲイザー・ホラー映画が好きです<br>ちょっとしたツール作ってます。AIとかテックの話も好きです</p>
   </div>
 
@@ -149,7 +170,7 @@
       </a>
     </li>
     <li>
-      <a href="https://karin-archive.com/" target="_blank" rel="noopener" class="link-card">
+      <a href="https://karin-archive.com/" target="_blank" rel="noopener" class="link-card karin-archive">
         <div class="link-icon">💜</div>
         <div class="link-content">
           <h3>karin-archive</h3>
