@@ -134,6 +134,33 @@
     .link-card.karin-archive .link-content {
       flex: 1;
     }
+
+    /* 動画サイトだけ下に少し離して中央寄せ（カード幅は上のグリッドと揃える） */
+    .links-bottom {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 2rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .links-bottom > li {
+      width: calc((100% - 36px) / 4);
+    }
+
+    @media (max-width: 1024px) {
+      .links-bottom > li { width: calc((100% - 24px) / 3); }
+    }
+
+    @media (max-width: 768px) {
+      .links-bottom > li { width: calc((100% - 12px) / 2); }
+    }
+
+    @media (max-width: 480px) {
+      .links-bottom { flex-direction: column; }
+      .links-bottom > li { width: 100%; }
+    }
   </style>
 </head>
 <body>
@@ -161,13 +188,20 @@
       </a>
     </li>
     <li>
-      <a href="https://x.com/yxmxgxn_AI" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon" style="width: 2rem; height: 2rem;">
-          <svg style="width: 100%; height: 100%" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="currentColor"/><path d="M17.5 3.5H20.5L14.5 10.5L21.5 20.5H16L11.5 14.5L6.5 20.5H3.5L9.8 13L3 3.5H8.7L12.8 9L17.5 3.5Z" fill="white"/></svg>
-        </div>
+      <a href="https://karin-archive.com/" target="_blank" rel="noopener" class="link-card karin-archive">
+        <div class="link-icon">💜</div>
         <div class="link-content">
-          <h3>X (AI)</h3>
-          <p>@yxmxgxn_AI</p>
+          <h3>karin-archive</h3>
+          <p>ハロプロファンサイト</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://note.com/yxgxmxn" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="font-weight: bold; font-size: 1.2rem;">n</div>
+        <div class="link-content">
+          <h3>note</h3>
+          <p>yxgxmxn</p>
         </div>
       </a>
     </li>
@@ -176,6 +210,17 @@
         <div class="link-icon" style="background: black; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; width: 1.8rem; height: 1.8rem; flex-shrink: 0;">@</div>
         <div class="link-content">
           <h3>Threads</h3>
+          <p>@yxmxgxn</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://www.instagram.com/yxmxgxn/" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="width: 2rem; height: 2rem;">
+          <svg style="width: 100%; height: 100%" viewBox="-90 -90 180 180" xmlns="http://www.w3.org/2000/svg"><rect x="-80" y="-80" width="160" height="160" rx="36" fill="none" stroke="currentColor" stroke-width="7"/><circle cx="0" cy="0" r="42" fill="none" stroke="currentColor" stroke-width="7"/><circle cx="0" cy="0" r="22" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="-50" r="10" fill="currentColor"/></svg>
+        </div>
+        <div class="link-content">
+          <h3>Instagram</h3>
           <p>@yxmxgxn</p>
         </div>
       </a>
@@ -194,20 +239,31 @@
       </a>
     </li>
     <li>
-      <a href="https://karin-archive.com/" target="_blank" rel="noopener" class="link-card karin-archive">
-        <div class="link-icon">💜</div>
+      <a href="https://qiita.com/yxmxgxn" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="width: 1.8rem; height: 1.8rem; background: #55C500; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: white; flex-shrink: 0;">Q</div>
         <div class="link-content">
-          <h3>karin-archive</h3>
-          <p>ハロプロファンサイト</p>
+          <h3>Qiita</h3>
+          <p>yxmxgxn</p>
         </div>
       </a>
     </li>
     <li>
-      <a href="https://note.com/yxgxmxn" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon" style="font-weight: bold; font-size: 1.2rem;">n</div>
+      <a href="https://www.last.fm/ja/user/ymxgn" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="background: #E62B1D; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.95rem; width: 1.8rem; height: 1.8rem; flex-shrink: 0;">as</div>
         <div class="link-content">
-          <h3>note</h3>
-          <p>yxgxmxn</p>
+          <h3>Last.fm</h3>
+          <p>ymxgn</p>
+        </div>
+      </a>
+    </li>
+    <li>
+      <a href="https://x.com/yxmxgxn_AI" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="width: 2rem; height: 2rem;">
+          <svg style="width: 100%; height: 100%" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="currentColor"/><path d="M17.5 3.5H20.5L14.5 10.5L21.5 20.5H16L11.5 14.5L6.5 20.5H3.5L9.8 13L3 3.5H8.7L12.8 9L17.5 3.5Z" fill="white"/></svg>
+        </div>
+        <div class="link-content">
+          <h3>X (AI)</h3>
+          <p>@yxmxgxn_AI</p>
         </div>
       </a>
     </li>
@@ -227,28 +283,10 @@
       </a>
     </li>
     <li>
-      <a href="https://www.last.fm/ja/user/ymxgn" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon" style="background: #E62B1D; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.95rem; width: 1.8rem; height: 1.8rem; flex-shrink: 0;">as</div>
-        <div class="link-content">
-          <h3>Last.fm</h3>
-          <p>ymxgn</p>
-        </div>
-      </a>
-    </li>
-    <li>
       <a href="https://posfie.com/@yxmxgxn" target="_blank" rel="noopener" class="link-card">
         <div class="link-icon" style="width: 1.8rem; height: 1.8rem; color: #32C7C5; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.6rem; flex-shrink: 0;">e</div>
         <div class="link-content">
           <h3>Posfile</h3>
-          <p>@yxmxgxn</p>
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="https://mastodon.social/@yxmxgxn" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon">🐘</div>
-        <div class="link-content">
-          <h3>Mastodon</h3>
           <p>@yxmxgxn</p>
         </div>
       </a>
@@ -263,26 +301,6 @@
       </a>
     </li>
     <li>
-      <a href="https://www.instagram.com/yxmxgxn/" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon" style="width: 2rem; height: 2rem;">
-          <svg style="width: 100%; height: 100%" viewBox="-90 -90 180 180" xmlns="http://www.w3.org/2000/svg"><rect x="-80" y="-80" width="160" height="160" rx="36" fill="none" stroke="currentColor" stroke-width="7"/><circle cx="0" cy="0" r="42" fill="none" stroke="currentColor" stroke-width="7"/><circle cx="0" cy="0" r="22" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="-50" r="10" fill="currentColor"/></svg>
-        </div>
-        <div class="link-content">
-          <h3>Instagram</h3>
-          <p>@yxmxgxn</p>
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="https://qiita.com/yxmxgxn" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon" style="width: 1.8rem; height: 1.8rem; background: #55C500; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: white; flex-shrink: 0;">Q</div>
-        <div class="link-content">
-          <h3>Qiita</h3>
-          <p>yxmxgxn</p>
-        </div>
-      </a>
-    </li>
-    <li>
       <a href="https://ameblo.jp/yxmxgxn/" target="_blank" rel="noopener" class="link-card">
         <div class="link-icon" style="background: #2C893A; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; width: 1.8rem; height: 1.8rem; flex-shrink: 0;">A</div>
         <div class="link-content">
@@ -291,6 +309,18 @@
         </div>
       </a>
     </li>
+    <li>
+      <a href="https://ymgn0829.github.io/8RGBSpecification/" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon">📄</div>
+        <div class="link-content">
+          <h3>GitHub Pages</h3>
+          <p>8RGB Specification</p>
+        </div>
+      </a>
+    </li>
+  </ul>
+
+  <ul class="links-bottom">
     <li>
       <a href="https://www.youtube.com/@hxexlxlxo" target="_blank" rel="noopener" class="link-card">
         <div class="link-icon" style="width: 2rem; height: 2rem;">
@@ -313,15 +343,6 @@
         <div class="link-content">
           <h3>Dailymotion</h3>
           <p>hxexlxlxo</p>
-        </div>
-      </a>
-    </li>
-    <li>
-      <a href="https://ymgn0829.github.io/8RGBSpecification/" target="_blank" rel="noopener" class="link-card">
-        <div class="link-icon">📄</div>
-        <div class="link-content">
-          <h3>GitHub Pages</h3>
-          <p>8RGB Specification</p>
         </div>
       </a>
     </li>
