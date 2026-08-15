@@ -59,6 +59,7 @@ code {
   color: var(--muted);
   font-size: 0.8rem;
   margin-top: 3rem;
+  text-align: center;
 }
 
 main {
