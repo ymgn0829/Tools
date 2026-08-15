@@ -61,6 +61,30 @@
     padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
     cursor: pointer; font-size: 14px; border-radius: 4px;
   }
+
+  #gen-controls { display: flex; gap: 10px; margin: 0.75rem 0; flex-wrap: wrap; align-items: center; }
+  #gen-controls input[type="text"] {
+    flex: 1; min-width: 100px; padding: 6px 10px;
+    border: 1px solid var(--line); font-size: 14px; background: var(--bg); color: var(--fg);
+  }
+  #gen-result { margin: 1em 0; }
+  #gen-cmd-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  #gen-out {
+    flex: 1; min-width: 200px; padding: 8px 12px;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 4px;
+    font-size: 13px; word-break: break-all;
+  }
+  #gen-copy {
+    padding: 6px 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg);
+    cursor: pointer; font-size: 14px; border-radius: 4px;
+  }
+  #gen-open {
+    display: inline-block; margin-top: 0.75em; padding: 8px 16px;
+    background: var(--accent); border-radius: 4px; color: #fff !important;
+    text-decoration: none; font-size: 14px;
+  }
+  #gen-err { color: #c0392b; font-size: 14px; }
+  hr.tool-sep { border: none; border-top: 1px solid var(--line); margin: 2.5rem 0 0; }
 </style>
 </head>
 
@@ -109,6 +133,32 @@
     <li><strong>短縮URL(youtu.be):</strong> オフだと <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)、オンだと <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)。</li>
     <li><strong>時間指定(t=)を消す:</strong> オンにすると再生開始位置を落として、動画のみのURLにします。</li>
   </ul>
+
+  <hr class="tool-sep">
+
+  <h1>その他のURL（汎用パラメータ除去）</h1>
+  YouTube以外のURLは、こちらでトラッキング用のパラメータ（<code>utm_*</code>・<code>fbclid</code>・<code>gclid</code>・<code>si</code> など）を除去します。<br>
+  機能に必要なパラメータを壊さないよう、<strong>既知のトラッキング用パラメータだけ</strong>を消して、それ以外はそのまま残します。<br>
+
+  <div id="gen-controls">
+    <input type="text" id="gen-url" placeholder="https://example.com/page?utm_source=...&fbclid=..." autocomplete="off">
+  </div>
+
+  <div id="gen-result" hidden>
+    <div id="gen-cmd-row">
+      <code id="gen-out"></code>
+      <button id="gen-copy" type="button">コピー</button>
+    </div>
+    <a id="gen-open" target="_blank" rel="noopener noreferrer">整形後のURLを開く</a>
+  </div>
+  <p id="gen-err" hidden></p>
+
+  <h2>ブックマークレット（汎用）</h2>
+  YouTube以外のページで実行すると、そのページのURLからトラッキング用パラメータを除いたものをクリップボードにコピーします。
+  <div class="yt-bml">
+    <a class="yt-bml-link" href="javascript:(function(){var S=new Set(['fbclid','gclid','dclid','gbraid','wbraid','yclid','msclkid','mc_cid','mc_eid','igshid','igsh','si','ref_src','ref_url','spm','scm','mkt_tok','_hsenc','_hsmi','vero_id','vero_conv','oly_anon_id','oly_enc_id','__s','cmpid','ck_subscriber_id','twclid','ttclid','rb_clickid','_openstat']);try{var u=new URL(location.href),keep=[];u.searchParams.forEach(function(v,k){var lk=k.toLowerCase();if(lk.indexOf('utm_')===0)return;if(S.has(lk))return;keep.push([k,v])});u.search='';keep.forEach(function(p){u.searchParams.append(p[0],p[1])});var o=u.toString();navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">URLをきれいにしてコピー</a>
+    <button type="button" class="yt-bml-copy">コードをコピー</button>
+  </div>
 </main>
 
 <footer class="site-footer">
@@ -203,9 +253,58 @@
     });
   });
 
+  // ---- 汎用パラメータ除去 ----
+  // 既知のトラッキング用パラメータだけを消す（他は壊さないよう残す）
+  var STRIP = {};
+  ["fbclid","gclid","dclid","gbraid","wbraid","yclid","msclkid",
+   "mc_cid","mc_eid","igshid","igsh","si","ref_src","ref_url",
+   "spm","scm","mkt_tok","_hsenc","_hsmi","vero_id","vero_conv",
+   "oly_anon_id","oly_enc_id","__s","cmpid","ck_subscriber_id",
+   "twclid","ttclid","rb_clickid","_openstat"].forEach(function (k) { STRIP[k] = 1; });
+
+  function cleanGeneric(raw) {
+    raw = raw.trim();
+    if (raw === "") return { url: "", ok: true };
+    var u;
+    try { u = new URL(raw); } catch (e) { return { url: "", ok: false }; }
+    var keep = [];
+    u.searchParams.forEach(function (v, k) {
+      var lk = k.toLowerCase();
+      if (lk.indexOf("utm_") === 0) return;
+      if (STRIP[lk]) return;
+      keep.push([k, v]);
+    });
+    u.search = "";
+    keep.forEach(function (p) { u.searchParams.append(p[0], p[1]); });
+    return { url: u.toString(), ok: true };
+  }
+
+  function genUpdate() {
+    var r = cleanGeneric($("gen-url").value);
+    if (!r.ok) {
+      $("gen-result").hidden = true;
+      $("gen-err").textContent = "URLとして読み取れませんでした。http(s):// から始まるURLを貼ってください。";
+      $("gen-err").hidden = false;
+      return;
+    }
+    $("gen-err").hidden = true;
+    if (r.url === "") { $("gen-result").hidden = true; return; }
+    $("gen-result").hidden = false;
+    $("gen-out").textContent = r.url;
+    $("gen-open").href = r.url;
+  }
+
+  $("gen-url").addEventListener("input", genUpdate);
+  $("gen-copy").addEventListener("click", function () {
+    navigator.clipboard.writeText($("gen-out").textContent);
+    $("gen-copy").textContent = "コピーしました";
+    setTimeout(function () { $("gen-copy").textContent = "コピー"; }, 1500);
+  });
+
   var pre = new URLSearchParams(location.search).get("url");
   if (pre) $("yt-url").value = pre;
   update();
+  genUpdate();
 })();
 </script>
 </body>
