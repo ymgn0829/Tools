@@ -80,7 +80,8 @@
   </div>
 
   <div id="yt-options">
-    <label><input type="checkbox" id="yt-short"> 短縮URL(youtu.be・s無し)にする</label>
+    <label><input type="checkbox" id="yt-short"> 短縮URL(youtu.be)にする</label>
+    <label><input type="checkbox" id="yt-notime"> 時間指定(t=)を消す</label>
   </div>
 
   <div id="yt-result" hidden>
@@ -105,7 +106,8 @@
     <li><strong>残す:</strong> 動画ID と 再生開始位置(<code>t=</code> または <code>start=</code>)。<code>1m30s</code> のような表記も秒(<code>90</code>)に統一します。</li>
     <li><strong>消す:</strong> <code>si=</code>(共有トラッキング)、<code>pp=</code>、<code>feature=</code>、<code>ab_channel=</code>、<code>list=</code>/<code>index=</code>(プレイリスト文脈)、<code>utm_*</code> など、動画の再生に不要なものすべて。</li>
     <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。</li>
-    <li><strong>出力形式:</strong> デフォルトは <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)。「短縮URL」にチェックすると <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)になります。</li>
+    <li><strong>短縮URL(youtu.be):</strong> オフだと <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)、オンだと <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)。</li>
+    <li><strong>時間指定(t=)を消す:</strong> オンにすると再生開始位置を落として、動画のみのURLにします。</li>
   </ul>
 </main>
 
@@ -150,10 +152,14 @@
   }
 
   function build(id, sec) {
+    // 「時間指定を消す」がオンなら t= を落とす
+    var t = $("yt-notime").checked ? 0 : sec;
     if ($("yt-short").checked) {
-      return "https://youtu.be/" + id + (sec > 0 ? "?t=" + sec : "");
+      // youtu.be は s 無し（YouTube純正の短縮リンクと同じ形）
+      return "https://youtu.be/" + id + (t > 0 ? "?t=" + t : "");
     }
-    return "https://www.youtube.com/watch?v=" + id + (sec > 0 ? "&t=" + sec + "s" : "");
+    // watch 形式は s 付き
+    return "https://www.youtube.com/watch?v=" + id + (t > 0 ? "&t=" + t + "s" : "");
   }
 
   function fail(msg) {
@@ -176,7 +182,7 @@
     $("yt-open").href = out;
   }
 
-  ["yt-url", "yt-short"].forEach(function (id) {
+  ["yt-url", "yt-short", "yt-notime"].forEach(function (id) {
     $(id).addEventListener(id === "yt-url" ? "input" : "change", update);
   });
 
