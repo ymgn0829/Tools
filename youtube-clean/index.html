@@ -125,23 +125,19 @@
     <button type="button" class="yt-bml-copy">コードをコピー</button>
   </div>
 
-  <h2>消すもの / 残すもの</h2>
-  <ul>
-    <li><strong>残す:</strong> 動画ID と 再生開始位置(<code>t=</code> または <code>start=</code>)。<code>1m30s</code> のような表記も秒(<code>90</code>)に統一します。</li>
-    <li><strong>消す:</strong> <code>si=</code>(共有トラッキング)、<code>pp=</code>、<code>feature=</code>、<code>ab_channel=</code>、<code>list=</code>/<code>index=</code>(プレイリスト文脈)、<code>utm_*</code> など、動画の再生に不要なものすべて。</li>
-    <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。</li>
-    <li><strong>短縮URL(youtu.be):</strong> オフだと <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)、オンだと <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)。</li>
-    <li><strong>時間指定(t=)を消す:</strong> オンにすると再生開始位置を落として、動画のみのURLにします。</li>
-  </ul>
-
   <hr class="tool-sep">
 
   <h1>その他のURL（汎用パラメータ除去）</h1>
   YouTube以外のURLは、こちらでトラッキング用のパラメータ（<code>utm_*</code>・<code>fbclid</code>・<code>gclid</code>・<code>si</code> など）を除去します。<br>
   機能に必要なパラメータを壊さないよう、<strong>既知のトラッキング用パラメータだけ</strong>を消して、それ以外はそのまま残します。<br>
+  <strong>Amazon</strong> のURLだけは特別扱いで、商品ID(ASIN)だけを抜いた最短形 <code>amazon.co.jp/dp/ASIN</code> にします。<br>
 
   <div id="gen-controls">
     <input type="text" id="gen-url" placeholder="https://example.com/page?utm_source=...&fbclid=..." autocomplete="off">
+  </div>
+
+  <div id="yt-options">
+    <label><input type="checkbox" id="gen-all"> すべてのクエリ(?以降)を消す（強力モード）</label>
   </div>
 
   <div id="gen-result" hidden>
@@ -156,9 +152,27 @@
   <h2>ブックマークレット（汎用）</h2>
   YouTube以外のページで実行すると、そのページのURLからトラッキング用パラメータを除いたものをクリップボードにコピーします。
   <div class="yt-bml">
-    <a class="yt-bml-link" href="javascript:(function(){var S=new Set(['fbclid','gclid','dclid','gbraid','wbraid','yclid','msclkid','mc_cid','mc_eid','igshid','igsh','si','ref_src','ref_url','spm','scm','mkt_tok','_hsenc','_hsmi','vero_id','vero_conv','oly_anon_id','oly_enc_id','__s','cmpid','ck_subscriber_id','twclid','ttclid','rb_clickid','_openstat']);try{var u=new URL(location.href),keep=[];u.searchParams.forEach(function(v,k){var lk=k.toLowerCase();if(lk.indexOf('utm_')===0)return;if(S.has(lk))return;keep.push([k,v])});u.search='';keep.forEach(function(p){u.searchParams.append(p[0],p[1])});var o=u.toString();navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">URLをきれいにしてコピー</a>
+    <a class="yt-bml-link" href="javascript:(function(){var S=new Set(['fbclid','gclid','dclid','gbraid','wbraid','yclid','msclkid','mc_cid','mc_eid','igshid','igsh','si','ref_src','ref_url','spm','scm','mkt_tok','_hsenc','_hsmi','vero_id','vero_conv','oly_anon_id','oly_enc_id','__s','cmpid','ck_subscriber_id','twclid','ttclid','rb_clickid','_openstat']);try{var u=new URL(location.href),keep=[];if(/(^|\.)amazon\./i.test(u.hostname)){var am=u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d|product)\/([A-Za-z0-9]{10})(?:[\/?]|$)/);if(am){var az='https://'+u.hostname+'/dp/'+am[1].toUpperCase();navigator.clipboard.writeText(az).then(function(){alert('コピーしました:\n'+az)},function(){prompt('コピーしてください',az)});return}}u.searchParams.forEach(function(v,k){var lk=k.toLowerCase();if(lk.indexOf('utm_')===0)return;if(S.has(lk))return;keep.push([k,v])});u.search='';keep.forEach(function(p){u.searchParams.append(p[0],p[1])});var o=u.toString();navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">URLをきれいにしてコピー</a>
     <button type="button" class="yt-bml-copy">コードをコピー</button>
   </div>
+
+  <h2>ブックマークレット（強力モード）</h2>
+  クエリ(<code>?</code>以降)をすべて消したものをコピーします。トラッキングが独自パラメータで残る場合はこちら。
+  <div class="yt-bml">
+    <a class="yt-bml-link" href="javascript:(function(){try{var u=new URL(location.href);u.search='';var o=u.toString();navigator.clipboard.writeText(o).then(function(){alert('コピーしました:\n'+o)},function(){prompt('コピーしてください',o)})}catch(e){alert('URLを解析できませんでした')}})();">クエリを全部消してコピー</a>
+    <button type="button" class="yt-bml-copy">コードをコピー</button>
+  </div>
+
+  <hr class="tool-sep">
+
+  <h2>消すもの / 残すもの（YouTube整形）</h2>
+  <ul>
+    <li><strong>残す:</strong> 動画ID と 再生開始位置(<code>t=</code> または <code>start=</code>)。<code>1m30s</code> のような表記も秒(<code>90</code>)に統一します。</li>
+    <li><strong>消す:</strong> <code>si=</code>(共有トラッキング)、<code>pp=</code>、<code>feature=</code>、<code>ab_channel=</code>、<code>list=</code>/<code>index=</code>(プレイリスト文脈)、<code>utm_*</code> など、動画の再生に不要なものすべて。</li>
+    <li><code>watch</code> / <code>youtu.be</code> / <code>shorts</code> / <code>live</code> / <code>embed</code>、<code>m.</code>・<code>music.</code> のURLに対応。</li>
+    <li><strong>短縮URL(youtu.be):</strong> オフだと <code>youtube.com/watch?v=ID&amp;t=90s</code>(長い形・s付き)、オンだと <code>youtu.be/ID?t=90</code>(youtu.be・s無し=YouTube純正の短縮リンクと同じ形)。</li>
+    <li><strong>時間指定(t=)を消す:</strong> オンにすると再生開始位置を落として、動画のみのURLにします。</li>
+  </ul>
 </main>
 
 <footer class="site-footer">
@@ -262,11 +276,27 @@
    "oly_anon_id","oly_enc_id","__s","cmpid","ck_subscriber_id",
    "twclid","ttclid","rb_clickid","_openstat"].forEach(function (k) { STRIP[k] = 1; });
 
+  // Amazonは商品ID(ASIN)だけ抜いて最短化する。ASINが取れなければ null
+  function amazonShort(u) {
+    if (!/(^|\.)amazon\./i.test(u.hostname)) return null;
+    var m = u.pathname.match(/\/(?:dp|gp\/product|gp\/aw\/d|product)\/([A-Za-z0-9]{10})(?:[/?]|$)/);
+    if (!m) return null;
+    return "https://" + u.hostname + "/dp/" + m[1].toUpperCase();
+  }
+
   function cleanGeneric(raw) {
     raw = raw.trim();
     if (raw === "") return { url: "", ok: true };
     var u;
     try { u = new URL(raw); } catch (e) { return { url: "", ok: false }; }
+    // Amazonはモード問わず常に最短形（/dp/ASIN）
+    var az = amazonShort(u);
+    if (az) return { url: az, ok: true };
+    if ($("gen-all").checked) {
+      // 強力モード: クエリを全部消す
+      u.search = "";
+      return { url: u.toString(), ok: true };
+    }
     var keep = [];
     u.searchParams.forEach(function (v, k) {
       var lk = k.toLowerCase();
@@ -295,6 +325,7 @@
   }
 
   $("gen-url").addEventListener("input", genUpdate);
+  $("gen-all").addEventListener("change", genUpdate);
   $("gen-copy").addEventListener("click", function () {
     navigator.clipboard.writeText($("gen-out").textContent);
     $("gen-copy").textContent = "コピーしました";
