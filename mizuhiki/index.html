@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>水引メーカー</title>
+<meta name="description" content="つばきファクトリーの新曲のジャケットに使われている梅結びは、数学でいう (2,5) トーラス結び目。輪の数と回り込みを変えて結び、メンバーカラーを紐に沿って乗せられます。SVGで書き出せます。">
+<meta property="og:title" content="水引メーカー">
+<meta property="og:description" content="つばきファクトリーの新曲のジャケットに使われている梅結びは、数学でいう (2,5) トーラス結び目。輪の数と回り込みを変えて結び、メンバーカラーを紐に沿って乗せられます。SVGで書き出せます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tools.ymgn0829.workers.dev/mizuhiki/">
+<meta property="og:image" content="https://tools.ymgn0829.workers.dev/assets/mizuhiki-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tools.ymgn0829.workers.dev/assets/mizuhiki-og.png">
+<meta name="twitter:creator" content="@yxmxgxn">
+<link rel="canonical" href="https://tools.ymgn0829.workers.dev/mizuhiki/">
+<link rel="icon" href="/assets/glasses-icon.png">
+<link rel="stylesheet" href="/assets/common.css">
+<style>
+  main { max-width: 1040px; margin: 0 auto; padding: 0 1rem .6rem; }
+  h1 { font-size: 1.1rem; margin: .5rem 0 .15rem; }
+  .lead { color: var(--muted); font-size: .78rem; margin: 0 0 .5rem; }
+  .lead a { color: var(--accent); text-decoration: underline; }
+  .site-header .wrap, .site-footer .wrap { padding: .4rem 1rem; }
+
+  /* 操作しながら結果が見えるように、広い画面では右に固定、狭い画面では上に固定 */
+  .layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 1rem; align-items: start; }
+  .preview { position: sticky; top: .8rem; }
+
+  /* PC では 結び / 色 を横に並べて1画面に収める */
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; align-items: start; }
+  .controls fieldset { margin: 0; }
+  .span2 { grid-column: 1 / -1; }
+  @media (max-width: 1080px) { .controls { grid-template-columns: 1fr; } }
+
+  .stage {
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: .8rem; background: var(--code-bg);
+  }
+  .stage svg { width: 100%; height: auto; display: block; }
+  .stage-foot {
+    font-size: .72rem; color: var(--muted); margin-top: .5rem;
+    line-height: 1.5; font-variant-numeric: tabular-nums;
+  }
+  .stage-foot span { display: block; }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; gap: .8rem; }
+    .preview {
+      order: -1; top: 0; z-index: 5;
+      background: var(--bg); padding: .5rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .stage { display: grid; grid-template-columns: 150px minmax(0,1fr); gap: .8rem; align-items: center; }
+    .stage-foot { margin-top: 0; }
+  }
+
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: .5rem .7rem .7rem; margin: 0 0 .7rem; }
+  legend { font-size: .75rem; color: var(--muted); padding: 0 .35rem; }
+
+  .row { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; }
+  .row > label { width: 6.4em; font-size: .78rem; color: var(--muted); flex-shrink: 0; }
+  .row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); height: 1.1rem; }
+  .row output { width: 2.8em; text-align: right; font-size: .78rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  select, button {
+    font: inherit; font-size: .78rem; padding: .25rem .5rem;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: var(--bg); color: var(--fg); cursor: pointer;
+  }
+  select { flex: 1; min-width: 0; }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  .btns { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .45rem; }
+
+  /* 名前が読める最小限の大きさ。丸は小さくして高さを稼ぐ */
+  .chips { display: flex; flex-wrap: wrap; gap: .3rem .4rem; margin-top: .45rem; }
+  .chip { display: flex; align-items: center; gap: .25rem; border: 1px solid var(--line); border-radius: 999px; padding: .1rem .5rem .1rem .1rem; }
+  .chip input[type=color] {
+    width: 20px; height: 20px; padding: 0; border: none;
+    border-radius: 50%; background: none; cursor: pointer; display: block; flex-shrink: 0;
+  }
+  .chip input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  .chip input[type=color]::-webkit-color-swatch { border: 1px solid var(--line); border-radius: 50%; }
+  .chip .nm { font-size: .75rem; color: var(--fg); line-height: 1.4; white-space: nowrap; }
+  .chip.out { border-style: dashed; }
+  .chip.out .nm { color: var(--muted); text-decoration: line-through; }
+  .chip .tag { font-size: .65rem; color: var(--accent); margin-left: .2rem; }
+
+  .note { font-size: .72rem; color: var(--muted); line-height: 1.5; margin: .35rem 0 0; }
+  .warn { color: var(--accent); }
+  textarea {
+    width: 100%; height: 7rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .7rem; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--code-bg); color: var(--fg); padding: .6rem; resize: vertical;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap"><a class="brand" href="/">Tools</a></div>
+</header>
+
+<main>
+  <h1>水引メーカー</h1>
+  <p class="lead">
+    つばきファクトリーの新曲の<a href="https://helloproject.com/release/7700/" target="_blank" rel="noopener">ジャケット</a>に使われている、梅結びは数学でいう (2,5) トーラス結び目です。輪の数と回り込みを変えて結び、メンバーカラーを紐に沿って実装しました。配置変えたり、SVGで書き出したり色々できるのでぐりぐりしてください。
+  </p>
+
+  <div class="layout">
+  <div class="controls">
+
+  <fieldset>
+    <legend>結び</legend>
+    <div class="row">
+      <label for="q">q（輪の数）</label>
+      <input type="range" id="q" min="2" max="12" step="1" value="5">
+      <output id="q-o">5</output>
+    </div>
+    <div class="row">
+      <label for="p">p（回り込み）</label>
+      <input type="range" id="p" min="2" max="3" step="1" value="2">
+      <output id="p-o">2</output>
+    </div>
+    <div class="row">
+      <label for="depth">花弁の深さ</label>
+      <input type="range" id="depth" min="30" max="95" step="5" value="85">
+      <output id="depth-o">0.85</output>
+    </div>
+    <div class="row">
+      <label for="rot">回転</label>
+      <input type="range" id="rot" min="-180" max="180" step="5" value="0">
+      <output id="rot-o">0°</output>
+    </div>
+    <div class="row">
+      <label for="s">締め具合</label>
+      <input type="range" id="s" min="0" max="100" step="1" value="40">
+      <output id="s-o">0.40</output>
+    </div>
+    <div class="row">
+      <label for="lw">紐の太さ</label>
+      <input type="range" id="lw" min="6" max="30" step="1" value="25">
+      <output id="lw-o">25</output>
+    </div>
+    <div class="row">
+      <label for="outline">フチ</label>
+      <input type="range" id="outline" min="0" max="4" step="1" value="2">
+      <output id="outline-o">2</output>
+    </div>
+    <div class="btns">
+      <button id="replay">締まる様子を見る</button>
+    </div>
+    <p class="note">交差は <b>q(p−1)</b>、弧はその2倍。<b>締め具合</b> 0 が数式そのまま、1 が緩和しきった形です。</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>色</legend>
+    <div class="row">
+      <label for="grp">グループ</label>
+      <select id="grp"></select>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="btns">
+      <button id="sort-hue">色相順に並べる</button>
+      <button id="reset-colors">加入順に戻す</button>
+      <button id="add">＋1色</button>
+      <button id="del">−1色</button>
+    </div>
+
+    <div class="row" style="margin-top:.9rem;">
+      <label for="bar">横一本に抜く</label>
+      <select id="bar"></select>
+    </div>
+    <input type="hidden" id="mode" value="alt">
+    <input type="hidden" id="dir" value="1">
+    <input type="hidden" id="inner" value="1"><output id="inner-o" hidden></output>
+    <div class="row">
+      <label for="ratio">大小の比</label>
+      <input type="range" id="ratio" min="30" max="90" step="2" value="70">
+      <output id="ratio-o">0.70</output>
+    </div>
+    <input type="hidden" id="blend" value="0"><output id="blend-o" hidden></output>
+    <div class="row">
+      <label for="phase">色の位置</label>
+      <input type="range" id="phase" min="0" max="100" step="1" value="44">
+      <output id="phase-o">0.44</output>
+    </div>
+    <p class="note">
+      <b>大小の比</b> は外側の輪と中の直線への角度の配分です（1ペア＝<span id="pair-deg">144</span>°）。
+    </p>
+  </fieldset>
+
+  <fieldset class="span2">
+    <legend>書き出し（背景は透過）</legend>
+    <div class="btns" style="margin-top:0;">
+      <button id="dl">SVGをダウンロード</button>
+      <button id="cp">SVGをコピー</button>
+      <button id="toggle-src">ソースを表示</button>
+    </div>
+    <textarea id="src" hidden readonly></textarea>
+  </fieldset>
+
+  </div><!-- /controls -->
+
+  <aside class="preview">
+    <div class="stage">
+      <svg id="sv" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="stage-foot">
+        <span id="msg"></span>
+        <span id="stat"></span>
+      </div>
+    </div>
+  </aside>
+  </div><!-- /layout -->
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">&copy; <a href="https://x.com/yxmxgxn" target="_blank" rel="noopener">@yxmxgxn</a></div>
+</footer>
+
+<script>
+'use strict';
+
+const members = [
+  {name:"小田さくら",group:"モーニング娘。'26",hex:"#A05EB5"},
+  {name:"野中美希",group:"モーニング娘。'26",hex:"#582c83"},
+  {name:"井上玲音",group:"Juice=Juice",hex:"#ffffff"},
+  {name:"谷本安美",group:"つばきファクトリー",hex:"#c1a7e2"},
+  {name:"小野瑞歩",group:"つばきファクトリー",hex:"#00b2a9"},
+  {name:"小野田紗栞",group:"つばきファクトリー",hex:"#f99fc9"},
+  {name:"秋山眞緒",group:"つばきファクトリー",hex:"#e70033"},
+  {name:"清野桃々姫",group:"BEYOOOOONDS",hex:"#fc4c02"},
+  {name:"段原瑠々",group:"Juice=Juice",hex:"#fc4c02"},
+  {name:"前田こころ",group:"BEYOOOOONDS",hex:"#59cbe8"},
+  {name:"西田汐里",group:"BEYOOOOONDS",hex:"#da1884"},
+  {name:"江口紗耶",group:"BEYOOOOONDS",hex:"#fdda24"},
+  {name:"岡村美波",group:"BEYOOOOONDS",hex:"#F57EB6"},
+  {name:"伊勢鈴蘭",group:"アンジュルム",hex:"#fc4c02"},
+  {name:"平井美葉",group:"BEYOOOOONDS",hex:"#582c83"},
+  {name:"小林萌花",group:"BEYOOOOONDS",hex:"#007749"},
+  {name:"里吉うたの",group:"BEYOOOOONDS",hex:"#005eb8"},
+  {name:"工藤由愛",group:"Juice=Juice",hex:"#F57EB6"},
+  {name:"松永里愛",group:"Juice=Juice",hex:"#0033a0"},
+  {name:"岡村ほまれ",group:"モーニング娘。'26",hex:"#fdda24"},
+  {name:"山﨑愛生",group:"モーニング娘。'26",hex:"#0033A0"},
+  {name:"橋迫鈴",group:"アンジュルム",hex:"#e70033"},
+  {name:"川名凜",group:"アンジュルム",hex:"#00B140"},
+  {name:"為永幸音",group:"アンジュルム",hex:"#F57EB6"},
+  {name:"松本わかな",group:"アンジュルム",hex:"#ffffff"},
+  {name:"有澤一華",group:"Juice=Juice",hex:"#b9d9eb"},
+  {name:"江端妃咲",group:"Juice=Juice",hex:"#fdda24"},
+  {name:"入江里咲",group:"Juice=Juice",hex:"#c1a7e2"},
+  {name:"河西結心",group:"つばきファクトリー",hex:"#582c83"},
+  {name:"福田真琳",group:"つばきファクトリー",hex:"#0033a0"},
+  {name:"豫風瑠乃",group:"つばきファクトリー",hex:"#ffcd00"},
+  {name:"斉藤円香",group:"OCHA NORMA",hex:"#59cbe8"},
+  {name:"広本瑠璃",group:"OCHA NORMA",hex:"#F7EA48"},
+  {name:"米村姫良々",group:"OCHA NORMA",hex:"#e70033"},
+  {name:"窪田七海",group:"OCHA NORMA",hex:"#F57EB6"},
+  {name:"中山夏月姫",group:"OCHA NORMA",hex:"#ffffff"},
+  {name:"西﨑美空",group:"OCHA NORMA",hex:"#582c83"},
+  {name:"北原もも",group:"OCHA NORMA",hex:"#d0df00"},
+  {name:"筒井澪心",group:"OCHA NORMA",hex:"#0033a0"},
+  {name:"平山遊季",group:"アンジュルム",hex:"#d0df00"},
+  {name:"櫻井梨央",group:"モーニング娘。'26",hex:"#d3bba8"},
+  {name:"石山咲良",group:"Juice=Juice",hex:"#582c83"},
+  {name:"遠藤彩加里",group:"Juice=Juice",hex:"#00c7b1"},
+  {name:"井上春華",group:"モーニング娘。'26",hex:"#00c7b1"},
+  {name:"弓桁朱琴",group:"モーニング娘。'26",hex:"#db0025"},
+  {name:"下井谷幸穂",group:"アンジュルム",hex:"#da1884"},
+  {name:"後藤花",group:"アンジュルム",hex:"#59cbe8"},
+  {name:"川嶋美楓",group:"Juice=Juice",hex:"#e70033"},
+  {name:"石井泉羽",group:"つばきファクトリー",hex:"#ffffff"},
+  {name:"村田結生",group:"つばきファクトリー",hex:"#f2d4d7"},
+  {name:"土居楓奏",group:"つばきファクトリー",hex:"#00B140"},
+  {name:"橋田歩果",group:"ロージークロニクル",hex:"#ffffff"},
+  {name:"吉田姫杷",group:"ロージークロニクル",hex:"#e70033"},
+  {name:"小野田華凜",group:"ロージークロニクル",hex:"#F57EB6"},
+  {name:"村越彩菜",group:"ロージークロニクル",hex:"#c1a7e2"},
+  {name:"植村葉純",group:"ロージークロニクル",hex:"#fc4c02"},
+  {name:"松原ユリヤ",group:"ロージークロニクル",hex:"#b9d9eb"},
+  {name:"島川波菜",group:"ロージークロニクル",hex:"#00B140"},
+  {name:"上村麗菜",group:"ロージークロニクル",hex:"#F7EA48"},
+  {name:"相馬優芽",group:"ロージークロニクル",hex:"#005eb8"},
+  {name:"林仁愛",group:"Juice=Juice",hex:"#00B140"},
+  {name:"長野桃羽",group:"アンジュルム",hex:"#F7EA48"},
+  {name:"西村乙輝",group:"つばきファクトリー",hex:"#F7EA48"},
+  {name:"杉原明紗",group:"モーニング娘。'26",hex:"#B9D9EB"},
+  {name:"小島はな",group:"BEYOOOOONDS",hex:"#ffffff"},
+  {name:"大坪茉乃",group:"BEYOOOOONDS",hex:"#d0df00"},
+  {name:"杉山結菜",group:"BEYOOOOONDS",hex:"#e70033"},
+  {name:"安田美結",group:"モーニング娘。'26",hex:"#00B140"},
+  {name:"鈴木もあ",group:"モーニング娘。'26",hex:"#DA1884"},
+  {name:"石川華望",group:"モーニング娘。'26",hex:"#FC4C02"},
+];
+
+const el = id => document.getElementById(id);
+const SIZE = 600;
+const GAPW = 1.45;   // ギャップ幅（紐幅に対する倍率）
+const GAPL = 1.30;   // ギャップ長（紐幅に対する倍率）
+const CBUCKETS = 720; // 弧に沿った色の分解能
+
+/* ============ 色 (OKLCH 補間) ============ */
+function hex2rgb(h){
+  h = h.replace('#','');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.slice(0,2),16)/255, parseInt(h.slice(2,4),16)/255, parseInt(h.slice(4,6),16)/255];
+}
+function rgb2hex(r,g,b){
+  const f = v => Math.round(Math.max(0, Math.min(1, v))*255).toString(16).padStart(2,'0');
+  return '#' + f(r) + f(g) + f(b);
+}
+const s2l = c => c <= 0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+const l2s = c => c <= 0.0031308 ? c*12.92 : 1.055*Math.pow(c, 1/2.4) - 0.055;
+
+function hex2oklch(hex){
+  let [r,g,b] = hex2rgb(hex);
+  r = s2l(r); g = s2l(g); b = s2l(b);
+  const l = Math.cbrt(0.4122214708*r + 0.5363325363*g + 0.0514459929*b);
+  const m = Math.cbrt(0.2119034982*r + 0.6806995451*g + 0.1073969566*b);
+  const s = Math.cbrt(0.0883024619*r + 0.2817188376*g + 0.6299787005*b);
+  const L = 0.2104542553*l + 0.7936177850*m - 0.0040720468*s;
+  const A = 1.9779984951*l - 2.4285922050*m + 0.4505937099*s;
+  const B = 0.0259040371*l + 0.7827717662*m - 0.8086757660*s;
+  return { L, C: Math.hypot(A,B), h: Math.atan2(B,A) };
+}
+function oklch2hex(L, C, h){
+  const A = C*Math.cos(h), B = C*Math.sin(h);
+  const l = Math.pow(L + 0.3963377774*A + 0.2158037573*B, 3);
+  const m = Math.pow(L - 0.1055613458*A - 0.0638541728*B, 3);
+  const s = Math.pow(L - 0.0894841775*A - 1.2914855480*B, 3);
+  return rgb2hex(
+    l2s( 4.0767416621*l - 3.3077115913*m + 0.2309699292*s),
+    l2s(-1.2684380046*l + 2.6097574011*m - 0.3413193965*s),
+    l2s(-0.0041960863*l - 0.7034186147*m + 1.7076147010*s)
+  );
+}
+/* 無彩色（白など）は隣の色相を借りて、灰色を経由しないようにする */
+function mixHex(h1, h2, t){
+  if (t <= 0) return h1;
+  if (t >= 1) return h2;
+  const a = hex2oklch(h1), b = hex2oklch(h2);
+  let ha = a.h, hb = b.h;
+  if (a.C < 1e-4) ha = hb;
+  if (b.C < 1e-4) hb = ha;
+  let d = hb - ha;
+  while (d >  Math.PI) d -= 2*Math.PI;
+  while (d < -Math.PI) d += 2*Math.PI;
+  return oklch2hex(a.L + (b.L-a.L)*t, a.C + (b.C-a.C)*t, ha + d*t);
+}
+const smooth = t => t*t*(3 - 2*t);
+/* フチ用に同じ色相のまま暗く。白でもグレーのフチが出るので背景に溶けない */
+function darken(hex){
+  const c = hex2oklch(hex);
+  return oklch2hex(c.L*0.55, c.C*0.9, c.h);
+}
+
+/* 紐に沿った位置 u∈[0,1) の色。等分割り当て。blend=0 でくっきり、1 でなめらか */
+function colorEven(u, pal, blend, phase){
+  const M = pal.length;
+  if (M === 1) return pal[0].hex;
+  let x = (u + phase) % 1; if (x < 0) x += 1;
+  const t = x * M;
+  const k = Math.floor(t) % M;
+  const f = t - Math.floor(t);
+  const b = Math.max(blend, 1e-6);
+  const g = Math.max(0, Math.min(1, (f - (1-b)/2) / b));
+  return mixHex(pal[k].hex, pal[(k+1)%M].hex, smooth(g));
+}
+
+/* 交差から交差までの「弧」ごとに1色を割り当てる。bounds は昇順の境界位置。
+   order を渡すと、紐をたどる順ではなく order[弧番号] の順で色を配る */
+function colorArc(u, pal, blend, phase, bounds, order){
+  const M = pal.length, n = bounds.length;
+  if (M === 1 || n === 0) return pal[0].hex;
+  let x = (u + phase) % 1; if (x < 0) x += 1;
+
+  let hiIdx = 0;                               // x の右隣にある境界
+  while (hiIdx < n && bounds[hiIdx] <= x) hiIdx++;
+  hiIdx = hiIdx % n;
+  const a = (hiIdx - 1 + n) % n;               // x が入っている弧の番号
+  const lo = bounds[a], hi = bounds[hiIdx];
+  const len = ((hi - lo) % 1 + 1) % 1 || 1/n;  // 折り返しをまたぐ弧に対応
+  const dL = ((x - lo) % 1 + 1) % 1;
+  const dR = len - dL;
+
+  const pick = k => pal[(order ? order[k] : k) % M].hex;
+  const cThis = pick(a);
+  const cNext = pick((a+1) % n);
+  const cPrev = pick((a-1+n) % n);
+
+  const w = blend * len / 2;
+  if (w > 1e-9){
+    if (dR < w) return mixHex(cThis, cNext, smooth(0.5*(1 - dR/w)));
+    if (dL < w) return mixHex(cThis, cPrev, smooth(0.5*(1 - dL/w)));
+  }
+  return cThis;
+}
+
+/* ============ 緩和 (PBD) ============ */
+function gcd(a,b){ return b ? gcd(b, a%b) : a; }
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+/* depth = r/R。大きいほど花弁が深くなり中心の穴が閉じる（内径/外径 = (1−depth)/(1+depth)） */
+function buildFormula(p, q, N, depth){
+  const X = new Float64Array(3*N);
+  for (let i=0;i<N;i++){
+    const t = i/N*2*Math.PI, rr = 2 + 2*depth*Math.cos(q*t);
+    X[3*i] = rr*Math.cos(p*t); X[3*i+1] = rr*Math.sin(p*t); X[3*i+2] = Math.sin(q*t);
+  }
+  let L = 0;
+  for (let i=0;i<N;i++){
+    const j = (i+1)%N;
+    L += Math.hypot(X[3*j]-X[3*i], X[3*j+1]-X[3*i+1], X[3*j+2]-X[3*i+2]);
+  }
+  const sc = 2*Math.PI/L;
+  for (let i=0;i<3*N;i++) X[i] *= sc;
+  let mx=0, my=0;
+  for (let i=0;i<N;i++){ mx+=X[3*i]; my+=X[3*i+1]; }
+  mx/=N; my/=N;
+  for (let i=0;i<N;i++){ X[3*i]-=mx; X[3*i+1]-=my; }
+  return X;
+}
+
+function makeStepper(p, q, depth){
+  /* q の倍数にそろえる。割り切れないと点が花弁に均等に配れず、
+     q回対称が崩れて輪の間隔が 72° からずれる（q=5 なら 79→80）。 */
+  let N = clamp(Math.round(13*q + 14), 64, 120);
+  N = Math.max(2*q, Math.round(N/q)*q);
+  const F = buildFormula(p, q, N, depth);
+  const X = new Float64Array(F);
+  for (let i=0;i<N;i++) X[3*i+2] += 0.02*Math.sin(3*q*(i/N*2*Math.PI));
+
+  const L0 = 2*Math.PI/N, D = clamp(2.1/q, 0.2, 0.6), zc = 0.62*D;
+  const alpha = 0.06, inner = 6, skip = Math.max(4, Math.round(N*0.04));
+  const tmp = new Float64Array(3*N);
+  const dx = new Float64Array(N), dy = new Float64Array(N), dz = new Float64Array(N), cnt = new Float64Array(N);
+
+  function outer(){
+    for (let i=0;i<N;i++){
+      const a=(i-1+N)%N, b=(i+1)%N;
+      tmp[3*i]   = X[3*i]   + alpha*(X[3*a]  +X[3*b]  -2*X[3*i]);
+      tmp[3*i+1] = X[3*i+1] + alpha*(X[3*a+1]+X[3*b+1]-2*X[3*i+1]);
+      tmp[3*i+2] = X[3*i+2] + alpha*(X[3*a+2]+X[3*b+2]-2*X[3*i+2]);
+    }
+    X.set(tmp);
+    /* 拘束は「まとめて平均」ではなくグループごとに順に射影する。
+       混ぜると、中心で多数の自己回避に触れる点ほど接触数で割られて
+       辺長の補正が薄まり、紐が伸びて花弁の付け根に曲がりが集中する。 */
+    for (let it=0;it<inner;it++){
+      dx.fill(0); dy.fill(0); dz.fill(0); cnt.fill(0);
+      for (let i=0;i<N;i++){
+        const j = (i+1)%N;
+        const ex=X[3*j]-X[3*i], ey=X[3*j+1]-X[3*i+1], ez=X[3*j+2]-X[3*i+2];
+        const l = Math.hypot(ex,ey,ez)+1e-12, c = 0.5*(l-L0)/l;
+        dx[i]+=c*ex; dy[i]+=c*ey; dz[i]+=c*ez;
+        dx[j]-=c*ex; dy[j]-=c*ey; dz[j]-=c*ez;
+        cnt[i]++; cnt[j]++;
+      }
+      for (let i=0;i<N;i++){
+        const k = cnt[i]>1 ? cnt[i] : 1;
+        X[3*i] += dx[i]/k; X[3*i+1] += dy[i]/k; X[3*i+2] += dz[i]/k;
+      }
+
+      dx.fill(0); dy.fill(0); dz.fill(0); cnt.fill(0);
+      for (let i=0;i<N;i++) for (let j=i+1;j<N;j++){
+        let sp = j-i; if (sp > N-sp) sp = N-sp;
+        if (sp <= skip) continue;
+        const vx=X[3*i]-X[3*j], vy=X[3*i+1]-X[3*j+1], vz=X[3*i+2]-X[3*j+2];
+        const d2 = vx*vx+vy*vy+vz*vz;
+        if (d2 >= D*D) continue;
+        const d = Math.sqrt(d2)+1e-12, pu = 0.5*(D-d)/d;
+        dx[i]+=pu*vx; dy[i]+=pu*vy; dz[i]+=pu*vz;
+        dx[j]-=pu*vx; dy[j]-=pu*vy; dz[j]-=pu*vz;
+        cnt[i]++; cnt[j]++;
+      }
+      for (let i=0;i<N;i++){
+        const k = cnt[i]>1 ? cnt[i] : 1;
+        X[3*i] += dx[i]/k; X[3*i+1] += dy[i]/k;
+        const nz = X[3*i+2] + dz[i]/k;
+        X[3*i+2] = nz>zc ? zc : (nz<-zc ? -zc : nz);
+      }
+    }
+    let mx=0, my=0;
+    for (let i=0;i<N;i++){ mx+=X[3*i]; my+=X[3*i+1]; }
+    mx/=N; my/=N;
+    for (let i=0;i<N;i++){ X[3*i]-=mx; X[3*i+1]-=my; }
+  }
+  return { N, F, X, outer, target: 560, done: 0 };
+}
+
+/* ============ 幾何 ============ */
+function polyline(F, X, N, s, size, pad, rot){
+  const sub = 5, m = N*sub;
+  const ca = Math.cos(rot), sa = Math.sin(rot);   // 画面の y は反転して描くので、正の角＝左回り
+  const cr = (a,b,c,d,t) => {
+    const t2=t*t, t3=t2*t;
+    return 0.5*((2*b) + (-a+c)*t + (2*a-5*b+4*c-d)*t2 + (-a+3*b-3*c+d)*t3);
+  };
+  const g = k => F[k] + (X[k]-F[k])*s;
+  const px = new Float64Array(m), py = new Float64Array(m), pz = new Float64Array(m);
+  for (let i=0;i<N;i++){
+    const im=(i-1+N)%N, ip=(i+1)%N, ip2=(i+2)%N;
+    for (let k=0;k<sub;k++){
+      const t=k/sub, idx=i*sub+k;
+      const x = cr(g(3*im),  g(3*i),  g(3*ip),  g(3*ip2),  t);
+      const y = cr(g(3*im+1),g(3*i+1),g(3*ip+1),g(3*ip2+1),t);
+      px[idx] = x*ca - y*sa;
+      py[idx] = x*sa + y*ca;
+      pz[idx] = cr(g(3*im+2),g(3*i+2),g(3*ip+2),g(3*ip2+2),t);
+    }
+  }
+  let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  for (let i=0;i<m;i++){
+    if(px[i]<mnx)mnx=px[i]; if(px[i]>mxx)mxx=px[i];
+    if(py[i]<mny)mny=py[i]; if(py[i]>mxy)mxy=py[i];
+  }
+  const ext = Math.max(mxx-mnx, mxy-mny) || 1;
+  const sc = (size - 2*pad)/ext;
+  const cx = (mnx+mxx)/2, cy = (mny+mxy)/2;
+  const pts = new Array(m);
+  for (let i=0;i<m;i++){
+    pts[i] = { x: size/2 + (px[i]-cx)*sc, y: size/2 - (py[i]-cy)*sc, z: pz[i] };
+  }
+  return pts;
+}
+
+/* 2D 線分交差を全部拾い、交差点での z を補間して over/under を決める */
+function crossings(pts){
+  const m = pts.length, out = [];
+  for (let i=0;i<m;i++){
+    const i2=(i+1)%m;
+    const ax=pts[i].x, ay=pts[i].y, rx=pts[i2].x-ax, ry=pts[i2].y-ay;
+    for (let j=i+1;j<m;j++){
+      let sp=j-i; if (sp > m-sp) sp = m-sp;
+      if (sp <= 1) continue;
+      const j2=(j+1)%m;
+      if (j2===i || i2===j) continue;
+      const bx=pts[j].x, by=pts[j].y, sx=pts[j2].x-bx, sy=pts[j2].y-by;
+      const den = rx*sy - ry*sx;
+      if (Math.abs(den) < 1e-9) continue;
+      const t = ((bx-ax)*sy - (by-ay)*sx)/den;
+      const u = ((bx-ax)*ry - (by-ay)*rx)/den;
+      if (t<0 || t>1 || u<0 || u>1) continue;
+      const zi = pts[i].z + (pts[i2].z - pts[i].z)*t;
+      const zj = pts[j].z + (pts[j2].z - pts[j].z)*u;
+      // pos は紐に沿った位置 [0,1)。弧ごとの色分けで境界として使う
+      const A = { i, i2, pos: (i + t)/m };
+      const B = { i: j, i2: j2, pos: (j + u)/m };
+      out.push({
+        x: ax + rx*t, y: ay + ry*t,
+        over:  zi>zj ? A : B,
+        under: zi>zj ? B : A
+      });
+    }
+  }
+  return out;
+}
+
+/* 細分点ごとに重複検出された交差を、空間的な近さで1点にまとめる */
+function clusterCrossings(xs, radius){
+  const used = new Array(xs.length).fill(false), out = [];
+  for (let i=0;i<xs.length;i++){
+    if (used[i]) continue;
+    used[i] = true;
+    let sx = xs[i].x, sy = xs[i].y, n = 1;
+    for (let j=i+1;j<xs.length;j++){
+      if (used[j]) continue;
+      if (Math.hypot(xs[j].x-xs[i].x, xs[j].y-xs[i].y) < radius){
+        used[j] = true; sx += xs[j].x; sy += xs[j].y; n++;
+      }
+    }
+    // over/under と紐に沿った位置は代表点のものをそのまま使う
+    out.push({ x:sx/n, y:sy/n, over:xs[i].over, under:xs[i].under });
+  }
+  return out;
+}
+
+function stubAttrs(pts, ref, cx, cy, half){
+  let dx = pts[ref.i2].x - pts[ref.i].x;
+  let dy = pts[ref.i2].y - pts[ref.i].y;
+  const l = Math.hypot(dx,dy) || 1;
+  dx/=l; dy/=l;
+  return `x1="${(cx-dx*half).toFixed(1)}" y1="${(cy-dy*half).toFixed(1)}"`
+       + ` x2="${(cx+dx*half).toFixed(1)}" y2="${(cy+dy*half).toFixed(1)}"`;
+}
+
+/* ============ 交差ブレイク法で SVG 本体を組む ============ */
+function buildBody(pts, lw, pal, blend, phase, maskId, outline, mode, bar, ratio, dir, inner){
+  const m = pts.length;
+  const xs = clusterCrossings(crossings(pts), lw*1.2);
+
+  // 弧の境界＝紐が交差を通過する位置。1つの交差につき2回通るので、境界は交差数の2倍
+  const bounds = [];
+  for (const c of xs){ bounds.push(c.over.pos, c.under.pos); }
+  bounds.sort((a,b) => a - b);
+
+  /* 極角を紐に沿ってアンラップする。この曲線は θ = p·t なので角度は等速で進み、
+     交差で区切ると1区間ぴったり 360°·p/弧数（(2,5) なら72°）の均等割りになる。
+     ジャケットは外側の弧が長く、繋ぎの直線が短い＝大小が交互なので、
+     区切りを交差ではなく「角度の大小交互」で置き直す。 */
+  const nSec = bounds.length;
+  let colAt;
+
+  if (mode.startsWith('alt') && nSec >= 2){
+    /* 角度の中心は外接矩形の中心ではなく重心を使う。q回対称の図形は
+       矩形の中心が対称の中心とずれるため、そこを基準にすると角度が均等に進まない。 */
+    let gx = 0, gy = 0;
+    for (let i=0;i<m;i++){ gx += pts[i].x; gy += pts[i].y; }
+    gx /= m; gy /= m;
+
+    const th = new Array(m);
+    let prev = Math.atan2(pts[0].y - gy, pts[0].x - gx);
+    let acc = prev; th[0] = acc;
+    for (let i=1;i<m;i++){
+      const a = Math.atan2(pts[i].y - gy, pts[i].x - gx);
+      let d = a - prev;
+      while (d >  Math.PI) d -= 2*Math.PI;
+      while (d < -Math.PI) d += 2*Math.PI;
+      acc += d; prev = a; th[i] = acc;
+    }
+    const th0 = th[0];
+    /* 一周ぶんの角度は厳密に ±2π·p。実測のままだと、同じ角度に来るはずの
+       大と小がわずかにずれて別の角度と判定され、大小の並べ替えが崩れる。 */
+    let total = th[m-1] + (th[m-1]-th[m-2]) - th0;
+    const turns = Math.max(1, Math.round(Math.abs(total)/(2*Math.PI)));
+    total = (total < 0 ? -1 : 1) * turns * 2*Math.PI;
+
+    const pairs = nSec/2;
+    /* 向きを反転すると各ペアの中で大と小が入れ替わり、外側の弧は5回対称なので
+       位置が変わらないまま内側だけ裏返って見える。大が同じ側に残るよう split を鏡像にする。 */
+    const big = dir > 0 ? (fr => fr < ratio) : (fr => fr > 1 - ratio);
+    /* 内側の短い弧（小）だけをペア単位でずらす。1ステップ＝360°×p÷ペア数
+       （(2,5) なら144°）。外側の輪と中の直線で回り方がずれるのを吸収する。 */
+    const secOfFrac = f => {
+      let x = ((f % 1) + 1) % 1 * pairs;
+      const pi = Math.floor(x), fr = x - pi;
+      const which = big(fr) ? 0 : 1;
+      const pp = which === 1 ? (((pi + inner) % pairs) + pairs) % pairs : pi;
+      return (2*pp + which) % nSec;
+    };
+    const fracAt = i => dir*(th[i] - th0)/total + phase;
+    const angOf = f => th0 + dir*(f - phase)*total;
+
+    // 紐をたどる順では 2つ飛ばしになるので、角度順に並べ替えて隣の輪へ隣の色を配る
+    const mid = [];
+    for (let k=0;k<nSec;k++){
+      const pi = Math.floor(k/2), which = k%2;
+      const off = dir > 0
+        ? (which === 0 ? ratio/2 : (ratio+1)/2)
+        : (which === 0 ? 1 - ratio/2 : (1-ratio)/2);
+      const midFrac = (pi + off) / pairs;
+      let a = angOf(midFrac) % (2*Math.PI);
+      if (a < 0) a += 2*Math.PI;
+      mid.push({ k, a, which });
+    }
+    /* 角度順に配るときだけ並べ替える。同じ角度に大（外側の弧）と小（繋ぎの直線）が
+       重なるので、必ず大→小の順に置く（紐順まかせだと大小の交替が崩れる）。 */
+    const order = new Array(nSec);
+    if (mode === 'alt-angle'){
+      const bucket = v => Math.round(v/(2*Math.PI)*1e5);
+      mid.sort((x,y) => (bucket(x.a) - bucket(y.a)) || (x.which - y.which));
+      mid.forEach((e, rank) => { order[e.k] = rank; });
+    } else {
+      for (let k=0;k<nSec;k++) order[k] = k;   // 紐をたどる順のまま
+    }
+
+    /* 弧の数が色数で割り切れないと、1弧1色では余りが出て巡回が閉じず継ぎ目になる
+       （q=11 なら 22弧÷10色＝2.2周）。色を弧全体へ均等に配って必ず閉じるようにする。
+       割り切れるとき（q=5 の 10÷10）は 1弧1色と完全に同じ結果になる。 */
+    const M = pal.length;
+    colAt = i => pal[Math.floor(order[secOfFrac(fracAt(i))] * M / nSec) % M].hex;
+  } else {
+    const lookup = mode === 'arc' && nSec
+      ? u => colorArc(u, pal, blend, phase, bounds, null)
+      : u => colorEven(u, pal, blend, phase);
+    // dir<0 で紐をたどる向きを反転（＝色の巡りが鏡像になる）
+    colAt = i => {
+      const u = (Math.floor(i/m*CBUCKETS) + 0.5)/CBUCKETS;
+      return lookup(dir > 0 ? u : 1 - u);
+    };
+  }
+
+  const col = pos => colAt(Math.min(m-1, Math.max(0, Math.round(pos*m) % m)));
+
+  // 同色が続く区間を1本の path にまとめる
+  const cols = new Array(m);
+  for (let i=0;i<m;i++) cols[i] = colAt(i);
+
+  const runs = [];
+  let start = 0;
+  for (let i=1;i<m;i++){
+    if (cols[i] !== cols[start]){ runs.push([start, i]); start = i; }
+  }
+  runs.push([start, m]);   // 末尾は先頭へ折り返す
+
+  const ds = runs.map(([a, b]) => {
+    let d = `M${pts[a].x.toFixed(1)} ${pts[a].y.toFixed(1)}`;
+    for (let i=a+1;i<=b;i++){
+      const q = pts[i % m];
+      d += `L${q.x.toFixed(1)} ${q.y.toFixed(1)}`;
+    }
+    return d;
+  });
+  // フチは全区間ぶんを先にまとめて敷く（区間ごとに交互だと隣の本体を上書きしてしまう）
+  let core = '';
+  if (outline > 0){
+    runs.forEach(([a], k) => {
+      core += `<path d="${ds[k]}" stroke="${darken(cols[a])}" stroke-width="${(lw + outline*2).toFixed(1)}"/>`;
+    });
+  }
+  runs.forEach(([a], k) => {
+    core += `<path d="${ds[k]}" stroke="${cols[a]}" stroke-width="${lw.toFixed(1)}"/>`;
+  });
+
+  const wOut = lw + outline*2;          // フチを含めた紐の見た目の幅
+  const half = wOut*GAPL/2;
+  let cut = '', overs = '';
+  for (const c of xs){
+    // マスク側を黒で塗って下の紐を抜く（背景色を使わないので透過のまま合成できる）
+    cut += `<line ${stubAttrs(pts, c.under, c.x, c.y, half)} stroke="#000" stroke-width="${(wOut*GAPW).toFixed(1)}"/>`;
+    const oc = col(c.over.pos);
+    if (outline > 0){
+      overs += `<line ${stubAttrs(pts, c.over, c.x, c.y, half*1.15)} stroke="${darken(oc)}" stroke-width="${wOut.toFixed(1)}"/>`;
+    }
+    overs += `<line ${stubAttrs(pts, c.over, c.x, c.y, half*1.15)} stroke="${oc}" stroke-width="${lw.toFixed(1)}"/>`;
+  }
+
+  // 横一本（ジャケットの、結びから抜けて水平に走る1本）は結びの後ろに敷く
+  let barSvg = '';
+  if (bar){
+    const y = (SIZE/2).toFixed(1);
+    const line = w => `<line x1="0" y1="${y}" x2="${SIZE}" y2="${y}" stroke-width="${w}"/>`;
+    if (outline > 0) barSvg += line(wOut.toFixed(1)).replace('<line', `<line stroke="${darken(bar)}"`);
+    barSvg += line(lw.toFixed(1)).replace('<line', `<line stroke="${bar}"`);
+  }
+
+  const body =
+      `<defs><mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="${SIZE}" height="${SIZE}">`
+    + `<rect width="${SIZE}" height="${SIZE}" fill="#fff"/>`
+    + `<g stroke-linecap="butt" fill="none">${cut}</g>`
+    + `</mask></defs>`
+    + `<g stroke-linecap="round" stroke-linejoin="round" fill="none">`
+    + barSvg
+    + `<g mask="url(#${maskId})">${core}</g>`
+    + overs
+    + `</g>`;
+
+  return { body, crossings: xs.length, arcs: bounds.length, paths: runs.length + xs.length };
+}
+
+/* ============ 状態 ============ */
+const groupNames = [...new Set(members.map(m => m.group))];
+const RAINBOW = ['#e70033','#fc4c02','#fdda24','#00B140','#00b2a9','#0033a0','#582c83'];
+/* 各グループのリーダー。既定でこの人を横一本に抜く（つばきのジャケットと同じ構成） */
+const LEADERS = new Set(['野中美希','伊勢鈴蘭','段原瑠々','谷本安美','前田こころ','斉藤円香','橋田歩果']);
+
+let palette = [];      // [{hex, name}]
+let basePalette = [];  // グループ選択直後の順序
+let cur = null, rafId = null, lastSvg = '';
+let sPref = 40;   // 締め具合の既定。緩和中は 1.0 を表示し、終わったらここへ戻す
+const cache = {};
+
+/* ============ 描画 ============ */
+function render(){
+  if (!cur) return;
+  const lw = +el('lw').value;
+  const s = +el('s').value/100;
+  const blend = +el('blend').value/100;
+  const phase = +el('phase').value/100;
+  const outline = +el('outline').value;
+  el('lw-o').textContent = lw;
+  el('s-o').textContent = s.toFixed(2);
+  el('blend-o').textContent = blend.toFixed(2);
+  el('phase-o').textContent = phase.toFixed(2);
+  el('outline-o').textContent = outline;
+
+  const mode = el('mode').value;
+  const ratio = +el('ratio').value/100;
+  const dir = +el('dir').value;
+  const inner = +el('inner').value;
+  el('inner-o').textContent = inner;
+  // 1ステップぶんの角度 = 360°×p ÷ ペア数(=交差数)
+  const pq = [+el('p').value, +el('q').value];
+  const pairDeg = Math.round(360*pq[0] / Math.max(1, pq[1]*(pq[0]-1)));
+  const pd = el('pair-deg'); if (pd) pd.textContent = pairDeg;
+  el('ratio-o').textContent = ratio.toFixed(2);
+  const bi = +el('bar').value;
+  const bar = bi >= 0 && palette[bi] ? palette[bi].hex : null;
+  const knotPal = bar ? palette.filter((_, i) => i !== bi) : palette;
+
+  const rot = +el('rot').value;
+  el('rot-o').textContent = rot + '°';
+
+  const pad = (lw + outline*2)*GAPW/2 + 10;
+  // 式は t=0 が右端から始まる。そこを基準にすると常に90°回した値になるので、
+  // 90°を既定の向きとして埋め込み、スライダーはそこからのずれを表す。
+  const pts = polyline(cur.F, cur.X, cur.N, s, SIZE, pad, (rot + 90)*Math.PI/180);
+  const t0 = performance.now();
+  const r = buildBody(pts, lw, knotPal, blend, phase, 'cut', outline, mode, bar, ratio, dir, inner);
+  const ms = performance.now() - t0;
+
+  el('sv').innerHTML = r.body;
+  el('stat').textContent = `交差 ${r.crossings} ／ 弧 ${r.arcs} ／ 色 ${knotPal.length}`
+    + (bar ? '＋横1' : '') + ` ／ ${ms.toFixed(1)}ms`;
+
+  lastSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}">`
+          + buildBody(pts, lw, knotPal, blend, phase, 'mizuhiki-cut', outline, mode, bar, ratio, dir, inner).body + `</svg>`;
+  if (!el('src').hidden) el('src').value = lastSvg;
+}
+
+function setmsg(p, q, tail){
+  const g = gcd(p,q), pr = p/g, qr = q/g;
+  let s;
+  if (g === 1){
+    s = `(${p},${q}) トーラス結び目`;
+    if (p===2 && q===5) s += '・梅結び';
+    s += ` ／ 輪 ${q} ・交差 ${q*(p-1)} ・弧 ${2*q*(p-1)}`;
+  } else {
+    s = `(${p},${q}) は (${pr},${qr}) の ${g} 重ね`;
+    s += pr === 1 ? ' — ほどけるので円になります' : ` — 実質 (${pr},${qr})`;
+  }
+  el('msg').innerHTML = tail ? `${s}<span class="warn"> ${tail}</span>` : s;
+}
+
+function start(p, q, force){
+  if (rafId){ cancelAnimationFrame(rafId); rafId = null; }
+  const depth = +el('depth').value/100;
+  el('depth-o').textContent = depth.toFixed(2);
+  const g = gcd(p,q), pr = p/g, qr = q/g, key = pr+'_'+qr+'_'+depth;
+
+  if (cache[key] && !force){
+    cur = cache[key];
+    setmsg(p,q,'');
+    render();
+    return;
+  }
+  const st = makeStepper(pr, qr, depth);
+  cur = { N: st.N, F: st.F, X: st.X };
+  el('s').value = 100;
+
+  (function tick(){
+    for (let c=0; c<14 && st.done<st.target; c++){ st.outer(); st.done++; }
+    setmsg(p, q, `締めています… ${Math.round(100*st.done/st.target)}%`);
+    render();
+    if (st.done < st.target) rafId = requestAnimationFrame(tick);
+    else {
+      cache[key] = { N: st.N, F: st.F, X: new Float64Array(st.X) };
+      cur = cache[key];
+      el('s').value = sPref;
+      setmsg(p,q,'');
+      render();
+    }
+  })();
+}
+
+/* ============ 色 UI ============ */
+function drawChips(){
+  const ratio = +el('ratio').value/100;
+  const dir = +el('dir').value;
+  const inner = +el('inner').value;
+  el('ratio-o').textContent = ratio.toFixed(2);
+  const bi = +el('bar').value;
+  el('chips').innerHTML = palette.map((c, i) =>
+    `<div class="chip${i === bi ? ' out' : ''}">`
+    + `<input type="color" value="${c.hex}" data-i="${i}" aria-label="${c.name || ('色'+(i+1))}">`
+    + `<div class="nm">${c.name || ('色'+(i+1))}`
+    + (i === bi ? '<span class="tag">横一本</span>' : '')
+    + `</div></div>`
+  ).join('');
+  el('chips').querySelectorAll('input[type=color]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      palette[+e.target.dataset.i].hex = e.target.value;
+      render();
+    });
+  });
+}
+
+/* 「横一本に抜く」の選択肢を今のパレットから作り直す */
+function drawBarSelect(keep){
+  const prev = keep === undefined ? +el('bar').value : keep;
+  el('bar').innerHTML = '<option value="-1">なし</option>'
+    + palette.map((c, i) => `<option value="${i}">${c.name || ('色'+(i+1))}</option>`).join('');
+  el('bar').value = String(prev < palette.length ? prev : -1);
+}
+
+function loadGroup(name){
+  if (name === '虹'){
+    basePalette = RAINBOW.map(h => ({ hex:h, name:'' }));
+  } else {
+    basePalette = members.filter(m => m.group === name).map(m => ({ hex: m.hex, name: m.name }));
+  }
+  palette = basePalette.map(c => ({...c}));
+  drawBarSelect(palette.findIndex(c => LEADERS.has(c.name)));
+  drawChips();
+  render();
+}
+
+function sortHue(){
+  const ratio = +el('ratio').value/100;
+  const dir = +el('dir').value;
+  const inner = +el('inner').value;
+  el('ratio-o').textContent = ratio.toFixed(2);
+  const bi = +el('bar').value;
+  const keep = bi >= 0 ? palette[bi] : null;    // 並べ替えても同じ人を横一本のまま保つ
+  palette = palette.slice().sort((a,b) => {
+    const A = hex2oklch(a.hex), B = hex2oklch(b.hex);
+    if (A.C < 1e-3 || B.C < 1e-3) return A.L - B.L;
+    return A.h - B.h;
+  });
+  drawBarSelect(keep ? palette.indexOf(keep) : -1);
+  drawChips(); render();
+}
+
+/* ============ 配線 ============ */
+el('grp').innerHTML = ['虹', ...groupNames].map(g => `<option value="${g}">${g}</option>`).join('');
+el('grp').value = 'つばきファクトリー';
+
+el('grp').addEventListener('change', e => loadGroup(e.target.value));
+el('sort-hue').addEventListener('click', sortHue);
+el('reset-colors').addEventListener('click', () => {
+  palette = basePalette.map(c => ({...c}));
+  drawBarSelect(); drawChips(); render();
+});
+el('add').addEventListener('click', () => {
+  if (palette.length >= 24) return;
+  palette.push({ hex: RAINBOW[palette.length % RAINBOW.length], name: '' });
+  drawBarSelect(); drawChips(); render();
+});
+el('del').addEventListener('click', () => {
+  if (palette.length <= 1) return;
+  palette.pop();
+  drawBarSelect(); drawChips(); render();
+});
+el('bar').addEventListener('change', () => { drawChips(); render(); });
+el('ratio').addEventListener('input', render);
+
+el('rot').addEventListener('input', render);
+el('depth').addEventListener('input', () => start(+el('p').value, +el('q').value));
+el('outline').addEventListener('input', render);
+el('phase').addEventListener('input', render);
+el('lw').addEventListener('input', render);
+el('s').addEventListener('input', () => { sPref = +el('s').value; render(); });
+el('p').addEventListener('input', () => { el('p-o').textContent = el('p').value; start(+el('p').value, +el('q').value); });
+el('q').addEventListener('input', () => { el('q-o').textContent = el('q').value; start(+el('p').value, +el('q').value); });
+el('replay').addEventListener('click', () => start(+el('p').value, +el('q').value, true));
+
+el('toggle-src').addEventListener('click', () => {
+  const t = el('src');
+  t.hidden = !t.hidden;
+  el('toggle-src').textContent = t.hidden ? 'ソースを表示' : 'ソースを隠す';
+  if (!t.hidden) t.value = lastSvg;
+});
+el('dl').addEventListener('click', () => {
+  const blob = new Blob([lastSvg], { type: 'image/svg+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `mizuhiki_${el('p').value}_${el('q').value}.svg`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+el('cp').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(lastSvg);
+    el('cp').textContent = 'コピーしました';
+  } catch {
+    el('src').hidden = false; el('src').value = lastSvg; el('src').select();
+    el('cp').textContent = '手動でコピーしてください';
+  }
+  setTimeout(() => { el('cp').textContent = 'SVGをコピー'; }, 1600);
+});
+
+loadGroup('つばきファクトリー');
+start(2, 5);
+</script>
+
+</body>
+</html>
