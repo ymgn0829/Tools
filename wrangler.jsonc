@@ -1,0 +1,12 @@
+{
+  "name": "tools",
+  "type": "javascript",
+  "env": {
+    "production": {
+      "name": "tools"
+    }
+  },
+  "observability": {
+    "enabled": true
+  }
+}
