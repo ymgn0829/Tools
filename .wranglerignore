@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.github/
+build/
+.gitignore
+README.md
+wrangler.jsonc
+.wranglerignore
+INDEXNOW_KEY.txt
+sitemap.xml
