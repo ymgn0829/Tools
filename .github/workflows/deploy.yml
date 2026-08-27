@@ -20,6 +20,9 @@ jobs:
       - name: Generate Sitemap
         run: bash build/generate-sitemap.sh "https://tools.ymgn0829.workers.dev" "sitemap.xml"
 
+      - name: Clean node_modules
+        run: rm -rf node_modules
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
