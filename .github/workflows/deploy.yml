@@ -26,7 +26,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4'
-          command: deploy
+          command: deploy --env=""
 
       - name: IndexNow Notification
         env:

@@ -1,12 +1,7 @@
 {
   "name": "tools",
-  "type": "javascript",
-  "env": {
-    "production": {
-      "name": "tools"
-    }
-  },
-  "observability": {
-    "enabled": true
+  "compatibility_date": "2026-08-26",
+  "assets": {
+    "directory": "."
   }
 }
