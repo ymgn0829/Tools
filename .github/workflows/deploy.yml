@@ -17,11 +17,11 @@ jobs:
         with:
           fetch-depth: 2   # IndexNow用に直前コミットとの差分を取る
 
-      - name: Generate Sitemap
-        run: bash build/generate-sitemap.sh "https://tools.ymgn0829.workers.dev" "sitemap.xml"
-
-      - name: Clean node_modules
-        run: rm -rf node_modules
+      - name: Build (public/ に配信ファイルを集める + sitemap生成)
+        env:
+          BASE_URL: https://tools.ymgn0829.workers.dev
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: bash build/build.sh
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
@@ -43,6 +43,7 @@ jobs:
             | grep -E '\.html$' \
             | grep -v node_modules \
             | sed 's|^\./||' \
+            | sed 's|^index\.html$||' \
             | sed 's|/index\.html$|/|' \
             | sed "s|^|$BASE_URL/|" \
             | sort -u \
