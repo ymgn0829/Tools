@@ -28,8 +28,10 @@ rsync -a ./ "$OUT/" \
 bash build/generate-sitemap.sh "$OUT" "$BASE_URL" "$OUT/sitemap.xml"
 
 # IndexNow のキーファイル(Bing が所有確認のために取りにくる)
+# Secret に改行や空白が紛れているとファイル名が壊れて422になるので削っておく
 if [ -n "${INDEXNOW_KEY:-}" ]; then
-  printf '%s' "$INDEXNOW_KEY" > "$OUT/$INDEXNOW_KEY.txt"
+  KEY=$(printf '%s' "$INDEXNOW_KEY" | tr -d '[:space:]')
+  printf '%s' "$KEY" > "$OUT/$KEY.txt"
 fi
 
 echo "build complete: $OUT"
