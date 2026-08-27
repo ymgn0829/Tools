@@ -1,0 +1,53 @@
+name: Build & Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # IndexNow用に直前コミットとの差分を取る
+
+      - name: Generate Sitemap
+        run: bash build/generate-sitemap.sh "https://tools.ymgn0829.workers.dev" "sitemap.xml"
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4'
+          command: deploy
+
+      - name: IndexNow Notification
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: |
+          [ -z "$INDEXNOW_KEY" ] && { echo "INDEXNOW_KEY未設定のためスキップ"; exit 0; }
+          HOST="tools.ymgn0829.workers.dev"
+          BASE_URL="https://tools.ymgn0829.workers.dev"
+          # 差分ファイルから .html の URL を抽出（index.html は / に正規化）
+          DIFF_URLS=$(git diff --name-only --diff-filter=ACM HEAD^ HEAD 2>/dev/null \
+            | grep -E '\.html$' \
+            | grep -v node_modules \
+            | sed 's|^\./||' \
+            | sed 's|/index\.html$|/|' \
+            | sed "s|^|$BASE_URL/|" \
+            | sort -u \
+            | tr '\n' ' ') || true
+          CLEAN_URLS=$(echo "$BASE_URL/ $DIFF_URLS" | tr -s ' ' | sed 's/^ //;s/ $//')
+          echo "Sending URLs: $CLEAN_URLS"
+          JSON_URLS=$(echo "$CLEAN_URLS" | tr ' ' '\n' | grep -v '^$' | sed 's/.*/"&"/' | paste -sd ',')
+          curl -s -o /dev/null -w "IndexNow HTTP status: %{http_code}\n" \
+            -X POST "https://www.bing.com/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{\"host\": \"$HOST\", \"key\": \"$INDEXNOW_KEY\", \"keyLocation\": \"$BASE_URL/$INDEXNOW_KEY.txt\", \"urlList\": [$JSON_URLS]}"
